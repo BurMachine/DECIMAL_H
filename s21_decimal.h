@@ -16,5 +16,12 @@ typedef struct {
   value_type_t value_type;
 } s21_decimal;
 
+int get_scale(const s21_decimal *varPtr);
+void set_sign(s21_decimal *a, int sign_value);
+int get_sign(const s21_decimal *a);
+void set_bit(s21_decimal *a, int bit_number, int value);
+int get_bit(const s21_decimal a, int bit_number);
+void set_scale(s21_decimal *varPtr, int scale);
+
 #endif // _S21_DECIMAL_H_
 //#endif // SRC_S21_DECIMAL_H_
