@@ -11,6 +11,9 @@
 ////   s21_ADDCODE = 4
 //} value_type_t;
 
+#define TRUE  1
+#define FALSE  0
+
 typedef struct {
   int bits[4];
 //  value_type_t value_type;
@@ -34,10 +37,15 @@ int offset_left(s21_decimal *num_ptr, int value_offset);
 void init_struct(s21_decimal *varPtr);
 void clear_bits(s21_decimal *varPtr);
 void copy_bits(s21_decimal src, s21_decimal *dest);
-
-
+s21_decimal div_only_bits(s21_decimal number_1, s21_decimal number_2, s21_decimal *buf);
 s21_decimal bit_add(s21_decimal *a, s21_decimal *b, int error_code);
+
+
+
 int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result);
+
+
+int s21_is_greater(s21_decimal value_1, s21_decimal value_2);
 
 #endif // _S21_DECIMAL_H_
 //#endif // SRC_S21_DECIMAL_H_

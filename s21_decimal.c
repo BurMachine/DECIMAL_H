@@ -2,13 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-/**
- * @brief Предварительные проверки для check_for_add
- *
- * @param num1 первое слагаемое
- * @param num2 второе слагаемое
- * @return s21_decimal число с выставленным value_type
- */
+
 
 
 
@@ -129,6 +123,9 @@ void set_scale(s21_decimal *varPtr, int scale) {
 }
 
 
+
+
+
 /**
  * @brief Смещение влево не затрагивая 31 и 63 бит
  * @param varPtr
@@ -157,6 +154,9 @@ int offset_left(s21_decimal *num_ptr, int value_offset) { // Смещение в
 }
 
 
+
+
+
 /**
  * @brief находит последний бит
  * @param number
@@ -168,6 +168,25 @@ int last_bit(s21_decimal number) {
     };
     return  last_bit;
 }
+
+
+
+
+int zero_check(s21_decimal num1, s21_decimal num2) {
+    int is_zero = TRUE;
+    s21_decimal *pt1 = &num1;
+    s21_decimal *pt2 = &num2;
+
+    if (pt1 && pt2) {
+        if (!num1.bits[0] && !num2.bits[0] && !num1.bits[1] && !num2.bits[1] &&
+            !num1.bits[2] && !num2.bits[2])
+            is_zero = FALSE;
+    }
+    return is_zero;
+}
+
+
+
 
 int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
     s21_decimal *big = NULL;
@@ -209,9 +228,46 @@ int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
             }
         } else {
             // нужно делить больший скейл на 10???
+            s21_decimal remainder;
+            s21_decimal TEN = {10, 0, 0, 0};
+            s21_decimal tmp_division = div_only_bits(big, TEN, *remainder);
+            s21_decimal zero = {0, 0, 0, 0};
+
+
+
         }
     }
 }
+
+
+
+
+/**
+ * @brief Функция переводит число децимал в доп.код
+ * @param number_1 указатель на число децимал
+ */
+void convert_to_addcode(s21_decimal *number_1) {
+    s21_decimal res;
+    s21_decimal add = {1, 0, 0, 0};
+    number_1->bits[0] = ~number_1->bits[0];
+    number_1->bits[1] = ~number_1->bits[1];
+    number_1->bits[2] = ~number_1->bits[2];
+    res = bit_add(number_1, &add);
+    number_1->bits[0] = res.bits[0];
+    number_1->bits[1] = res.bits[1];
+    number_1->bits[2] = res.bits[2];
+    number_1->value_type = 4;
+}
+
+
+
+
+void sub_bits_only(s21_decimal *number1, s21_decimal *number2) {
+    s21_decimal addcode_num1 = number1;
+
+}
+
+
 
 /**
  * @brief Временная функция для инициализаци структуры которая хранит число
@@ -221,12 +277,70 @@ int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
 void init_struct(s21_decimal *varPtr) {
     clear_bits(varPtr);
 }
+
+
+
 void clear_bits(s21_decimal *varPtr) {
     memset(varPtr->bits, 0, sizeof(varPtr->bits));
 }
+
+
+
 
 void copy_bits(s21_decimal src, s21_decimal *dest) {
     dest->bits[0] = src.bits[0];
     dest->bits[1] = src.bits[1];
     dest->bits[2] = src.bits[2];
+}
+
+
+
+
+/**
+ * @brief Деление битов игнорируется степень // НЕ СВОЯ РЕАЛИЗАЦИЯ!
+ * @param a число децимал
+ * @param b число децимал
+ * @param buf остаток от деления
+ * @return s21_decimal результат деление (целая часть)
+ */
+s21_decimal div_only_bits(s21_decimal number_1, s21_decimal number_2,
+                          s21_decimal *buf) {
+    init_struct(buf);
+    s21_decimal res = {{0, 0, 0, 0}, 0};
+    for (int i = last_bit(number_1); i >= 0; i--) {
+        if (get_bit(number_1, i))
+            set_bit(buf, 0, 1);
+        if (s21_is_greater_or_equal(*buf, number_2) == TRUE) {
+            *buf = s21_sub(*buf, number_2);
+            if (i != 0) offset_left(buf, 1);
+            if (get_bit(number_1, i - 1)) set_bit(buf, 0, 1);
+            offset_left(&res, 1);
+            set_bit(&res, 0, 1);
+        } else {
+            offset_left(&res, 1);
+            if (i != 0) offset_left(buf, 1);
+            if ((i - 1) >= 0 && get_bit(number_1, i - 1)) set_bit(buf, 0, 1);
+        }
+    }
+    return res;
+}
+
+
+
+
+
+
+int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
+    int value_type = NORMAL_VALUE;
+
+}
+
+
+
+
+
+
+
+int s21_is_greater(s21_decimal value_1, s21_decimal value_2) {
+    int is_greater = -1;
 }
