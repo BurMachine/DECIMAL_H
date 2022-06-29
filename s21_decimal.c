@@ -1,5 +1,6 @@
 #include "s21_decimal.h"
 #include <stdio.h>
+#include <string.h>
 
 /**
  * @brief Предварительные проверки для check_for_add
@@ -79,6 +80,7 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
 
     return solution;
 }
+//********************************************************************************************************//
 
 int get_bit(const s21_decimal a, int bit_number) {
     int result = 0;
@@ -127,3 +129,104 @@ void set_scale(s21_decimal *varPtr, int scale) {
 }
 
 
+/**
+ * @brief Смещение влево не затрагивая 31 и 63 бит
+ * @param varPtr
+ * @param value_offset
+ * @return
+ */
+int offset_left(s21_decimal *num_ptr, int value_offset) { // Смещение влево не затрагивая 31 и 63 бит
+//    value_type type;
+    int res = NORMAL_VALUE;
+    int lastbit = last_bit(*num_ptr);
+    if (lastbit + value_offset > 95) {
+        res = INFINITY;
+    }
+    if (res != INFINITY) {
+        for (int i = 0; i < value_offset; i++) {
+            int value_31bit = get_bit(*num_ptr, 31);
+            int value_63bit = get_bit(*num_ptr, 63);
+            num_ptr->bits[0] <<= 1;
+            num_ptr->bits[1] <<= 1;
+            num_ptr->bits[2] <<= 1;
+            if (value_31bit) set_bit(num_ptr, 32, value_31bit);
+            if (value_63bit) set_bit(num_ptr, 64, value_63bit);
+        }
+    }
+    return res;
+}
+
+
+/**
+ * @brief находит последний бит
+ * @param number
+ * @return номер последнего бита или -1 если все пустые
+ */
+int last_bit(s21_decimal number) {
+    int last_bit = 95;
+    for (; last_bit >= 0 && get_bit(number, last_bit) == 0; last_bit--){
+    };
+    return  last_bit;
+}
+
+int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
+    s21_decimal *big = NULL;
+    s21_decimal  *small = NULL;
+    int process = 1;
+    if (get_scale(number1) == get_scale(number2)) {
+        process = 0;
+    } else if (get_scale(number1) > get_scale(number2)) {
+        big = number1;
+        small = number2;
+    } else {
+        big = number2;
+        small = number1;
+    }
+
+    s21_decimal tmp;
+    init_struct(&tmp);
+    int small_scale = 0;
+    int bigger_scale = 0;
+
+    int type = NORMAL_VALUE;
+    while (get_scale(number1) != get_scale(number2)) {
+        int err = 0;
+        if (type == NORMAL_VALUE) {
+            small_scale = get_scale(small);
+            s21_decimal tmp1;
+            s21_decimal tmp2;
+
+            tmp1 = *small;
+            tmp2 = *small;
+            offset_left(&tmp1, 1);
+            offset_left(&tmp2, 3);
+            tmp = bit_add(&tmp1, &tmp2, err);
+            if (err != 1) {
+                copy_bits(tmp, small);
+                set_scale(small, small_scale + 1);
+            } else {
+                type == INFINITY;
+            }
+        } else {
+            // нужно делить больший скейл на 10???
+        }
+    }
+}
+
+/**
+ * @brief Временная функция для инициализаци структуры которая хранит число
+ * Децимал
+ * @param varPtr указатель на число децимал
+ */
+void init_struct(s21_decimal *varPtr) {
+    clear_bits(varPtr);
+}
+void clear_bits(s21_decimal *varPtr) {
+    memset(varPtr->bits, 0, sizeof(varPtr->bits));
+}
+
+void copy_bits(s21_decimal src, s21_decimal *dest) {
+    dest->bits[0] = src.bits[0];
+    dest->bits[1] = src.bits[1];
+    dest->bits[2] = src.bits[2];
+}

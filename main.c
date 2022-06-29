@@ -34,23 +34,11 @@ void print01(int i, int szf) {
 //    return b;
 //}
 int main() {
-    s21_decimal a = {{3, 0, 0, 0}, 0};
-//    print01(a.bits[3], 8);
-//    printf(" ");
-//    print01(a.bits[2], 8);
-//    printf(" ");
-//    print01(a.bits[1], 8);
-//    printf(" ");
-//    print01(a.bits[0], 8);
-    print0001(a);
-    printf("\n%d\n", get_scale(&a));
-    set_scale(&a, 28);
-    print0001(a);
-    printf("\n%d\n", get_scale(&a));
-    set_scale(&a, 1);
-    print0001(a);
-    printf("\n%d\n", get_scale(&a));
-
+    s21_decimal a = {3, 0, 0, 0};
+    s21_decimal b = {0, 3, 2, 0};
+    s21_decimal c = {0, 0, 0, 0};
+    s21_add(a, b, &c);
+    print0001(c);
 }
 
 void print0001(s21_decimal a) {
