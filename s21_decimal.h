@@ -42,6 +42,12 @@ s21_decimal bit_add(s21_decimal *a, s21_decimal *b, int error_code);
 void convert_to_addcode(s21_decimal *number_1);
 
 
+int is_greater_or_equal(s21_decimal dec1, s21_decimal dec2);
+int is_equal_b(s21_decimal dec1, s21_decimal dec2);
+int is_greater(s21_decimal num1, s21_decimal num2);
+int is_less_b(s21_decimal num1, s21_decimal num2);
+s21_decimal division_without_scale(s21_decimal num1, s21_decimal num2);
+
 
 
         int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result);
