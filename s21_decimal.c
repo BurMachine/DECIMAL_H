@@ -228,10 +228,7 @@ int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
             }
         } else {
             // нужно делить больший скейл на 10???
-            s21_decimal remainder;
-            s21_decimal TEN = {10, 0, 0, 0};
-            s21_decimal tmp_division = div_only_bits(big, TEN, *remainder);
-            s21_decimal zero = {0, 0, 0, 0};
+
 
 
 
@@ -252,18 +249,17 @@ void convert_to_addcode(s21_decimal *number_1) {
     number_1->bits[0] = ~number_1->bits[0];
     number_1->bits[1] = ~number_1->bits[1];
     number_1->bits[2] = ~number_1->bits[2];
-    res = bit_add(number_1, &add);
+    res = bit_add(number_1, &add,0);
     number_1->bits[0] = res.bits[0];
     number_1->bits[1] = res.bits[1];
     number_1->bits[2] = res.bits[2];
-    number_1->value_type = 4;
 }
 
 
 
 
 void sub_bits_only(s21_decimal *number1, s21_decimal *number2) {
-    s21_decimal addcode_num1 = number1;
+    s21_decimal *addcode_num1 = number1;
 
 }
 
@@ -305,24 +301,24 @@ void copy_bits(s21_decimal src, s21_decimal *dest) {
  */
 s21_decimal div_only_bits(s21_decimal number_1, s21_decimal number_2,
                           s21_decimal *buf) {
-    init_struct(buf);
-    s21_decimal res = {{0, 0, 0, 0}, 0};
-    for (int i = last_bit(number_1); i >= 0; i--) {
-        if (get_bit(number_1, i))
-            set_bit(buf, 0, 1);
-        if (s21_is_greater_or_equal(*buf, number_2) == TRUE) {
-            *buf = s21_sub(*buf, number_2);
-            if (i != 0) offset_left(buf, 1);
-            if (get_bit(number_1, i - 1)) set_bit(buf, 0, 1);
-            offset_left(&res, 1);
-            set_bit(&res, 0, 1);
-        } else {
-            offset_left(&res, 1);
-            if (i != 0) offset_left(buf, 1);
-            if ((i - 1) >= 0 && get_bit(number_1, i - 1)) set_bit(buf, 0, 1);
-        }
-    }
-    return res;
+//    init_struct(buf);
+//    s21_decimal res = {0, 0, 0, 0};
+//    for (int i = last_bit(number_1); i >= 0; i--) {
+//        if (get_bit(number_1, i))
+//            set_bit(buf, 0, 1);
+//        if (s21_is_greater_or_equal(*buf, number_2) == TRUE) {
+//            *buf = s21_sub(*buf, number_2);
+//            if (i != 0) offset_left(buf, 1);
+//            if (get_bit(number_1, i - 1)) set_bit(buf, 0, 1);
+//            offset_left(&res, 1);
+//            set_bit(&res, 0, 1);
+//        } else {
+//            offset_left(&res, 1);
+//            if (i != 0) offset_left(buf, 1);
+//            if ((i - 1) >= 0 && get_bit(number_1, i - 1)) set_bit(buf, 0, 1);
+//        }
+//    }
+//    return res;
 }
 
 
