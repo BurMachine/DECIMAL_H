@@ -40,8 +40,9 @@ void copy_bits(s21_decimal src, s21_decimal *dest);
 s21_decimal div_only_bits(s21_decimal number_1, s21_decimal number_2, s21_decimal *buf);
 s21_decimal bit_add(s21_decimal *a, s21_decimal *b, int error_code);
 void convert_to_addcode(s21_decimal *number_1);
+int scale_equalize(s21_decimal *number1, s21_decimal *number2);
 
-
+/* support bit function(not solution of the task) */
 int is_greater_or_equal(s21_decimal dec1, s21_decimal dec2);
 int is_equal_b(s21_decimal dec1, s21_decimal dec2);
 int is_greater(s21_decimal num1, s21_decimal num2);

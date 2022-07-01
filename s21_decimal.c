@@ -40,7 +40,6 @@ s21_decimal bit_add(s21_decimal *a, s21_decimal *b, int error_code) {
             error_code = 1;
         }
     }
-
     return result;
 }
 
@@ -208,9 +207,11 @@ int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
     int bigger_scale = 0;
 
     int type = NORMAL_VALUE;
+    int err = 0;
+    if (get_bit(*big, 95) && get_bit(*small, 95)) err = 1;
     while (get_scale(number1) != get_scale(number2)) {
-        int err = 0;
-        if (type == NORMAL_VALUE) {
+
+        if (!err) {
             small_scale = get_scale(small);
             s21_decimal tmp1;
             s21_decimal tmp2;
@@ -220,20 +221,29 @@ int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
             offset_left(&tmp1, 1);
             offset_left(&tmp2, 3);
             tmp = bit_add(&tmp1, &tmp2, err);
+            if (get_bit(tmp, 95)) err = 1;
             if (err != 1) {
                 copy_bits(tmp, small);
                 set_scale(small, small_scale + 1);
-            } else {
-                type == INFINITY;
             }
-        } else {
-            // нужно делить больший скейл на 10???
+        }
+        if (err) {
+            // деление большего скейла на 10
+            s21_decimal ten = {10, 0, 0, 0};
+            s21_decimal zero = {0, 0, 0, 0};
 
-
-
-
+            s21_decimal tmp = {0, 0, 0, 0};
+            tmp = division_without_scale(*big, ten);
+            if (is_equal_b(tmp, zero) != 0) { // tmp не полностью обрезался
+                copy_bits(tmp, big);
+            } if (is_equal_b(tmp, zero) == 0) { // обрезался, нужны идеи как быть в этой ситуации(мб остаток от деления ставить)
+                copy_bits(tmp, big);
+            }
+            bigger_scale = get_scale(big);
+            set_scale(big, bigger_scale - 1);
         }
     }
+    return 0;
 }
 
 
