@@ -67,7 +67,9 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
         }
         int err = -1;
         *result = bit_add(&tmp_1, &value_2, &err);
-        /////// проверка на знак
+        if (s21_is_greater(value_1, value_2)) {
+            set_bit(result, 127, 1);
+        }
     } else if (!get_sign(&value_1) && get_sign(&value_2)) {
         s21_decimal tmp_1 = value_2;
         set_sign(&value_2, 0);
@@ -77,7 +79,9 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
         }
         int err = -1;
         *result = bit_add(&tmp_1, &value_1, &err);
-        /////////// проверка на знак
+        if (!s21_is_greater(value_1, value_2)) {
+            set_bit(result, 127, 1);
+        }
     } else {
         // оба отрицательных
         set_sign(&value_1, 0);
@@ -97,6 +101,67 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
 //    scale_equalize(&value_1, &value_2);
     return solution;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                   СРАВНЕНИЯ                                                            //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+ *
+ * @param value_1
+ * @param value_2
+ * @return 0 или 1
+ */
+int s21_is_greater(s21_decimal value_1, s21_decimal value_2) {
+    int is_greater = -1;
+
+    int negative = 0;
+    int sign_value_1 = get_sign(&value_1);
+    int sign_value_2 = get_sign(&value_2);
+
+    if (sign_value_1 && !sign_value_2) negative = 0;
+    if (!sign_value_1 && sign_value_2) negative = 1;
+    if (!sign_value_1 && !sign_value_2) negative = 2;
+    if (negative == 0) is_greater = 0;
+    if (negative == 1) is_greater == 1;
+    check_scale(&value_1, &value_2);
+
+    for (int i = 95; i >= 0 && is_greater == -1; i--) {
+        int bit_dec1 = get_bit(value_1, i);
+        int bit_dec2 = get_bit(value_2, i);
+        if (bit_dec1 && !bit_dec2) is_greater = 1;
+        if (bit_dec2 && !bit_dec1) is_greater = 0;
+
+        if (is_greater != -1) {
+            if (get_sign(&value_1) && get_sign(&value_2)) is_greater = !is_greater;
+        }
+    }
+    if (is_greater == -1) is_greater = 0;
+    return is_greater;
+}
+
+
+/**
+ * @brief
+ * @param dec1 Первое число децимал
+ * @param dec2 Второе число децимал
+ * @return 0 - меньше, 1 - больше
+ */
+int s21_is_less(s21_decimal dec1, s21_decimal dec2) {
+    return s21_is_greater(dec2, dec1);
+}
+
+
+
+//********************************************************************************************************//
+//********************************************************************************************************//
+//********************************************************************************************************//
+//********************************************************************************************************//
+//********************************************************************************************************//
+//********************************************************************************************************//
+//********************************************************************************************************//
+//********************************************************************************************************//
 //********************************************************************************************************//
 
 int get_bit(const s21_decimal a, int bit_number) {
@@ -144,11 +209,6 @@ void set_scale(s21_decimal *varPtr, int scale) {
         varPtr->bits[3] |= mask;
     }
 }
-
-
-
-
-
 /**
  * @brief Смещение влево не затрагивая 31 и 63 бит
  * @param varPtr
@@ -175,11 +235,6 @@ int offset_left(s21_decimal *num_ptr, int value_offset) { // Смещение в
     }
     return res;
 }
-
-
-
-
-
 /**
  * @brief находит последний бит
  * @param number
@@ -191,10 +246,6 @@ int last_bit(s21_decimal number) {
     };
     return  last_bit;
 }
-
-
-
-
 int zero_check(s21_decimal num1, s21_decimal num2) {
     int is_zero = TRUE;
     s21_decimal *pt1 = &num1;
@@ -207,12 +258,6 @@ int zero_check(s21_decimal num1, s21_decimal num2) {
     }
     return is_zero;
 }
-
-
-
-
-
-
 /**
  *
  * @param number1 перавое число
@@ -249,7 +294,7 @@ int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
             s21_decimal tmp2;
             tmp1 = *big;
             tmp2 = *big;
-            if (!flag)  {
+            if (!flag && big->bits[0] == 1)  {
                 offset_left(&tmp1, 1);
                 offset_left(&tmp2, 3);
                 tmp = bit_add(&tmp1, &tmp2, &err);
@@ -285,9 +330,6 @@ int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
     }
     return get_scale(number1);
 }
-
-
-
 /**
  * @brief Функция переводит число децимал в доп.код
  * @param number_1 указатель на число децимал
@@ -303,17 +345,6 @@ void convert_to_addcode(s21_decimal *number_1) {
     number_1->bits[1] = res.bits[1];
     number_1->bits[2] = res.bits[2];
 }
-
-
-
-
-void sub_bits_only(s21_decimal *number1, s21_decimal *number2) {
-    s21_decimal *addcode_num1 = number1;
-
-}
-
-
-
 /**
  * @brief Временная функция для инициализаци структуры которая хранит число
  * Децимал
@@ -322,64 +353,14 @@ void sub_bits_only(s21_decimal *number1, s21_decimal *number2) {
 void init_struct(s21_decimal *varPtr) {
     clear_bits(varPtr);
 }
-
-
-
 void clear_bits(s21_decimal *varPtr) {
     memset(varPtr->bits, 0, sizeof(varPtr->bits));
 }
-
-
-
-
 void copy_bits(s21_decimal src, s21_decimal *dest) {
     dest->bits[0] = src.bits[0];
     dest->bits[1] = src.bits[1];
     dest->bits[2] = src.bits[2];
 }
-
-
-
-
-/**
- * @brief Деление битов игнорируется степень // НЕ СВОЯ РЕАЛИЗАЦИЯ!
- * @param a число децимал
- * @param b число децимал
- * @param buf остаток от деления
- * @return s21_decimal результат деление (целая часть)
- */
-s21_decimal div_only_bits(s21_decimal number_1, s21_decimal number_2,
-                          s21_decimal *buf) {
-//    init_struct(buf);
-//    s21_decimal res = {0, 0, 0, 0};
-//    for (int i = last_bit(number_1); i >= 0; i--) {
-//        if (get_bit(number_1, i))
-//            set_bit(buf, 0, 1);
-//        if (s21_is_greater_or_equal(*buf, number_2) == TRUE) {
-//            *buf = s21_sub(*buf, number_2);
-//            if (i != 0) offset_left(buf, 1);
-//            if (get_bit(number_1, i - 1)) set_bit(buf, 0, 1);
-//            offset_left(&res, 1);
-//            set_bit(&res, 0, 1);
-//        } else {
-//            offset_left(&res, 1);
-//            if (i != 0) offset_left(buf, 1);
-//            if ((i - 1) >= 0 && get_bit(number_1, i - 1)) set_bit(buf, 0, 1);
-//        }
-//    }
-//    return res;
-}
-
-
-
-
-
-
-int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
-    int value_type = NORMAL_VALUE;
-
-}
-
 s21_decimal division_without_scale(s21_decimal num1, s21_decimal num2) {
     s21_decimal result1 = { 0, 0, 0, 0};
     s21_decimal result = { 0, 0, 0, 0};
@@ -486,10 +467,22 @@ int is_greater_or_equal(s21_decimal dec1, s21_decimal dec2) {
     return !!(!is_greater(dec1, dec2) || !is_equal_b(dec1, dec2));
 }
 
+int negative(s21_decimal value_1, s21_decimal value_2) {
+    int negative = 0;
+    int sign_value_1 = get_sign(&value_1);
+    int sign_value_2 = get_sign(&value_2);
 
+    if (!sign_value_1 && sign_value_2) negative = 0;
+    if (sign_value_1 && !sign_value_2) negative = 1;
+    if (!sign_value_1 && !sign_value_2) negative = 2;
+    return  negative;
+}
 
+void check_scale(s21_decimal *value_1, s21_decimal *value_2) {
+    int scale_1 = get_scale(value_1);
+    int scale_2 = get_scale(value_2);
 
-
-//int s21_is_greater(s21_decimal value_1, s21_decimal value_2) {
-//    int is_greater = -1;
-//}
+    if (scale_1 != scale_2) {
+        scale_equalize(value_1, value_2);
+    }
+}

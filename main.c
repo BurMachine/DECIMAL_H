@@ -3,12 +3,7 @@
 
 void print0001(s21_decimal a);
 
-
-
-union abc {
-    int i;
-    char c[4];
-};
+int s21_is_less(s21_decimal dec1, s21_decimal dec2);
 
 void print01(int i, int szf) {
     while (szf--) {
@@ -18,18 +13,16 @@ void print01(int i, int szf) {
 
 
 int main() {
-//    s21_decimal a = {3, 0, 0, 0};
-//    s21_decimal b = {0, 3, 2, 0};
     s21_decimal c = {0, 0, 0, 0};
-//    s21_add(a, b, &c);
-//    print0001(c);
-    s21_decimal num1 = {10, 0, 0, 0};
+    s21_decimal num1 = {16, 0, 0, 0};
     s21_decimal num2 = {1, 0, 0, 0};
-    set_bit(&num1, 95, 1);
-    set_bit(&num2, 95, 1);
+//    set_bit(&num1, 95, 1);
+//    set_bit(&num2, 95, 1);
     set_scale(&num1, 4);
     set_scale(&num2, 1);
-    scale_equalize(&num1, &num2);
+//    set_sign(&num2, 1);
+//    scale_equalize(&num1, &num2);
+    s21_add(num1, num2, &c);
     print0001(num1);
     printf("\n");
     print0001(num2);
@@ -48,4 +41,19 @@ void print0001(s21_decimal a) {
     printf(" ");
     print01(a.bits[0], 32);
 }
+
+//int main() {
+//    s21_decimal num1 = {100000, 0, 0, 0};
+//    s21_decimal num2 = {1, 0, 0, 0};
+//    set_scale(&num1, 3);
+//    set_scale(&num2, 6);
+////    set_sign(&num1, 1);
+//    int a = s21_is_greater(num1, num2);
+//    int b = s21_is_less(num1, num2);
+//    printf("%d\n%d\n", a, b);
+//    print0001(num1);
+//    printf("\n");
+//    print0001(num2);
+//    printf("\n");
+//}
 
