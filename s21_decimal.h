@@ -38,7 +38,7 @@ void init_struct(s21_decimal *varPtr);
 void clear_bits(s21_decimal *varPtr);
 void copy_bits(s21_decimal src, s21_decimal *dest);
 s21_decimal div_only_bits(s21_decimal number_1, s21_decimal number_2, s21_decimal *buf);
-s21_decimal bit_add(s21_decimal *a, s21_decimal *b, int error_code);
+s21_decimal bit_add(s21_decimal *a, s21_decimal *b, int *error_code);
 void convert_to_addcode(s21_decimal *number_1);
 int scale_equalize(s21_decimal *number1, s21_decimal *number2);
 
@@ -51,10 +51,9 @@ s21_decimal division_without_scale(s21_decimal num1, s21_decimal num2);
 
 
 
-        int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result);
+int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result);
 
-
-int s21_is_greater(s21_decimal value_1, s21_decimal value_2);
+//int s21_is_greater(s21_decimal value_1, s21_decimal value_2);
 
 #endif // _S21_DECIMAL_H_
 //#endif // SRC_S21_DECIMAL_H_

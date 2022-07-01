@@ -6,7 +6,7 @@
 
 
 
-s21_decimal bit_add(s21_decimal *a, s21_decimal *b, int error_code) {
+s21_decimal bit_add(s21_decimal *a, s21_decimal *b, int *error_code) {
     s21_decimal result = {0 ,0, 0, 0};
     size_t buffer = 0;
     for (int i = 0; i < 96; i++) {
@@ -36,8 +36,8 @@ s21_decimal bit_add(s21_decimal *a, s21_decimal *b, int error_code) {
             }
         }
 
-        if (i == 95 && buffer == 1) {
-            error_code = 1;
+        if (i == 95 && buffer == 1 && error_code != -1) {
+            *(error_code) = 1;
         }
     }
     return result;
@@ -45,32 +45,56 @@ s21_decimal bit_add(s21_decimal *a, s21_decimal *b, int error_code) {
 
 int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     int solution = 0;
+    int scale = 0;
     // написать чек на допустимость значения (хз надо ли)
     // пока обрабатывает только целые числа(scale на подходе)
     if (!get_sign(&value_1) && !get_sign(&value_2)) {
-
         if (get_scale(&value_1) != get_scale(&value_2)) {
-            // scale...
+            scale = scale_equalize(&value_1, &value_2);
         }
-        int err;
-        *result = bit_add(&value_1, &value_2, err);
+        int err = 0;
+        *result = bit_add(&value_1, &value_2, &err);
         if (err == 1) {
             // infinity
             solution = 1;
         }
-    } else if (get_sign(&value_1) && !get_sign(&value_2)) {
-        // нужно вычитание
+    } else if (get_sign(&value_1) && !get_sign(&value_2)) { // первое отрицательное, второе положительное
+        s21_decimal tmp_1 = value_1;
+        set_sign(&value_1, 0);
+        convert_to_addcode(&tmp_1);
+        if (get_scale(&tmp_1) != get_scale(&value_2)) {
+            scale = scale_equalize(&tmp_1, &value_2);
+        }
+        int err = -1;
+        *result = bit_add(&tmp_1, &value_2, &err);
+        /////// проверка на знак
     } else if (!get_sign(&value_1) && get_sign(&value_2)) {
-        // нужно вычитание
+        s21_decimal tmp_1 = value_2;
+        set_sign(&value_2, 0);
+        convert_to_addcode(&tmp_1);
+        if (get_scale(&tmp_1) != get_scale(&value_1)) {
+            scale = scale_equalize(&tmp_1, &value_1);
+        }
+        int err = -1;
+        *result = bit_add(&tmp_1, &value_1, &err);
+        /////////// проверка на знак
     } else {
         // оба отрицательных
         set_sign(&value_1, 0);
         set_sign(&value_2, 0);
-        // нужно сложить каким-то образом(bit_add)
-        set_sign(&result, 1);
+        if (get_scale(&value_1) != get_scale(&value_2)) {
+            scale = scale_equalize(&value_1, &value_2);
+        }
+        int err = 0;
+        *result = bit_add(&value_1, &value_2, &err);
+        if (err == 1) {
+            // negative_infinity
+            solution = 2;
+        }
+        set_sign(result, 1);
     }
-
-
+    set_scale(result, scale);
+//    scale_equalize(&value_1, &value_2);
     return solution;
 }
 //********************************************************************************************************//
@@ -187,6 +211,14 @@ int zero_check(s21_decimal num1, s21_decimal num2) {
 
 
 
+
+
+/**
+ *
+ * @param number1 перавое число
+ * @param number2 второе соответственно
+ * @return общий скейл
+ */
 int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
     s21_decimal *big = NULL;
     s21_decimal  *small = NULL;
@@ -208,23 +240,31 @@ int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
 
     int type = NORMAL_VALUE;
     int err = 0;
+    int flag = 0;
     if (get_bit(*big, 95) && get_bit(*small, 95)) err = 1;
     while (get_scale(number1) != get_scale(number2)) {
-
         if (!err) {
-            small_scale = get_scale(small);
+            bigger_scale = get_scale(big);
             s21_decimal tmp1;
             s21_decimal tmp2;
-
-            tmp1 = *small;
-            tmp2 = *small;
+            tmp1 = *big;
+            tmp2 = *big;
+            if (!flag)  {
+                offset_left(&tmp1, 1);
+                offset_left(&tmp2, 3);
+                tmp = bit_add(&tmp1, &tmp2, &err);
+                copy_bits(tmp, big);
+                tmp1 = *big;
+                tmp2 = *big;
+                flag = 1;
+            }
             offset_left(&tmp1, 1);
             offset_left(&tmp2, 3);
-            tmp = bit_add(&tmp1, &tmp2, err);
+            tmp = bit_add(&tmp1, &tmp2, &err);
             if (get_bit(tmp, 95)) err = 1;
             if (err != 1) {
-                copy_bits(tmp, small);
-                set_scale(small, small_scale + 1);
+                copy_bits(tmp, big);
+                set_scale(big, bigger_scale - 1);
             }
         }
         if (err) {
@@ -232,20 +272,19 @@ int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
             s21_decimal ten = {10, 0, 0, 0};
             s21_decimal zero = {0, 0, 0, 0};
 
-            s21_decimal tmp = {0, 0, 0, 0};
-            tmp = division_without_scale(*big, ten);
-            if (is_equal_b(tmp, zero) != 0) { // tmp не полностью обрезался
-                copy_bits(tmp, big);
-            } if (is_equal_b(tmp, zero) == 0) { // обрезался, нужны идеи как быть в этой ситуации(мб остаток от деления ставить)
-                copy_bits(tmp, big);
+            s21_decimal tmp12 = {0, 0, 0, 0};
+            tmp12 = division_without_scale(*big, ten);
+            if (is_equal_b(tmp12, zero) != 0) { // tmp не полностью обрезался
+                copy_bits(tmp12, small);
+            } if (is_equal_b(tmp12, zero) == 0) { // обрезался, нужны идеи как быть в этой ситуации(мб остаток от деления ставить)
+                copy_bits(tmp12, small);
             }
             bigger_scale = get_scale(big);
-            set_scale(big, bigger_scale - 1);
+            set_scale(small, small_scale + 1);
         }
     }
-    return 0;
+    return get_scale(number1);
 }
-
 
 
 
