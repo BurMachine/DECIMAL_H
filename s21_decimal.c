@@ -354,12 +354,15 @@ s21_decimal division_without_scale(s21_decimal num1, s21_decimal num2) {
                 if(is_less_b(tmp, div_num2) && !is_equal_b(tmp, div_num2)) continue;
             } else if (is_equal_b(tmp, null)) {
                 set_bit(&tmp, 0, get_bit(num1, i));
-                if(is_less_b(tmp, div_num2) && !is_equal_b(tmp, div_num2)) {flag_null++; continue;}
+                if(is_less_b(tmp, div_num2) && !is_equal_b(tmp, div_num2) && i != 0) {flag_null++; continue;}
             } else {
                 offset_left(&tmp, 1);
                 set_bit(&tmp, 0, get_bit(num1, i));
-                if(is_less_b(tmp, div_num2) && !is_equal_b(tmp, div_num2)) {flag_null++; continue;}
+                if(is_less_b(tmp, div_num2) && !is_equal_b(tmp, div_num2) && i != 0) {flag_null++; continue;}
             }
+        }
+        if (i == 0 && !get_bit(num1, 0)) {
+            flag_null = 1;
         }
 
         sub = tmp;
