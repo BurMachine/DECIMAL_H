@@ -1,11 +1,6 @@
 #include "s21_decimal.h"
 #include <stdio.h>
 #include <string.h>
-
-
-
-
-
 s21_decimal bit_add(s21_decimal *a, s21_decimal *b, int *error_code) {
     s21_decimal result = {0 ,0, 0, 0};
     size_t buffer = 0;
@@ -150,6 +145,32 @@ int s21_is_greater(s21_decimal value_1, s21_decimal value_2) {
  */
 int s21_is_less(s21_decimal dec1, s21_decimal dec2) {
     return s21_is_greater(dec2, dec1);
+}
+int s21_from_int_to_decimal(int src, s21_decimal *dst) {
+  char result = TRUE;
+  if (dst) {
+    dst->bits[0] = dst->bits[1] = dst->bits[2] = dst->bits[3] = 0;
+    if (src < 0) {
+      set_sign(dst, 1);
+      src *= -1;
+    }
+    dst->bits[0] = src;
+  } else {
+    result = FALSE;
+  }
+  return result;
+}
+int s21_from_decimal_to_int(s21_decimal src, int *dst) {
+  int result = 1;
+    *dst = src.bits[0];
+    if (get_sign(&src)) {
+        *dst *= -1;
+    } else {
+        *dst *= 1;
+    }
+    *dst /= (int)pow(10, get_scale(&src));
+    result = 0;
+  return result;
 }
 
 
