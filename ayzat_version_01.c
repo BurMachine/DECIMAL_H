@@ -32,7 +32,7 @@ void print0001(s21_decimal a) {
     print01(a.bits[0], 32);
 }
 
- int get_sign(const s21_decimal *a) {
+ int get_sign(s21_decimal *a) {
     unsigned int mask = 1u << 31;
     return !!(a->bits[3] & mask);
 }
@@ -48,6 +48,14 @@ void set_sign(s21_decimal *a, int sign_value) {
 
 int get_scale(const s21_decimal *a) {
     return (char)(a->bits[3] >> 16);
+}
+int get_bit(const s21_decimal a, int bit_number) {
+    int result = 0;
+    if (bit_number / 32 < 4) {
+        unsigned int mask = 1u << (bit_number % 32);
+        result = a.bits[bit_number / 32] & mask;
+    }
+    return !!result;
 }
 
 int s21_from_int_to_decimal(int src, s21_decimal *dst) {
@@ -76,73 +84,40 @@ int s21_from_decimal_to_int(s21_decimal src, int *dst) {
     result = 0;
   return result;
 }
-int is_NAN(s21_decimal *dec1, s21_decimal *dec2) {
-  int vt_dec1 = dec1;
-  int vt_dec2 = dec2;
-  return (vt_dec1 == s21_NAN || vt_dec2 == s21_NAN) ? TRUE : FALSE;
+int getFloatSign(float *src) { 
+    return *(int *)src >> 31; 
 }
 
-int is_inf(s21_decimal *dec1, s21_decimal *dec2) {
-  int who_is_inf = 0;
-  int vt_dec1 = dec1->value_type;
-  int vt_dec2 = dec2->value_type;
-
-  if (vt_dec1 == s21_INFINITY && vt_dec2 != s21_INFINITY) {
-    who_is_inf = 1;
-  } else if (vt_dec1 != s21_INFINITY && vt_dec2 == s21_INFINITY) {
-    who_is_inf = -1;
-  } else if (vt_dec1 == s21_INFINITY && vt_dec2 == s21_INFINITY) {
-    who_is_inf = 2;
-  }
-  return who_is_inf;
+int getFloatExp(float *src) { 
+    return ((*(int *)src & ~0x80000000) >> 23) - 127; 
 }
 
-int is_neg_inf(s21_decimal *dec1, s21_decimal *dec2) {
-  int who_is_inf = 0;
-  int vt_dec1 = dec1->value_type;
-  int vt_dec2 = dec2->value_type;
-
-  if (vt_dec1 == s21_NEGATIVE_INFINITY && vt_dec2 != s21_NEGATIVE_INFINITY) {
-    who_is_inf = 1;
-  }
-  if (vt_dec1 != s21_NEGATIVE_INFINITY && vt_dec2 == s21_NEGATIVE_INFINITY) {
-    who_is_inf = -1;
-  }
-  if (vt_dec1 == s21_NEGATIVE_INFINITY && vt_dec2 == s21_NEGATIVE_INFINITY) {
-    who_is_inf = 2;
-  }
-
-  return who_is_inf;
-}
 int s21_from_decimal_to_float(s21_decimal src, float *dst) {
-   int result = FALSE;
-    double temp = 0;
-    int off = 0;
+    int sign = get_sign(&src);
+    if (!dst)
+        return TRUE;
+    int exponent = get_scale(&src);
+    long double tmp = 0;
     for (int i = 0; i < 96; i++)
-      if ((src.bits[i / 32] & (1 << i % 32)) != 0) temp += pow(2, i);
-      if ((off = (src.bits[3] & ~0x80000000) >> 16) > 0) {
-      for (int i = off; i > 0; i--) temp /= 10.0;
-    *dst = (float)temp;
-    *dst *= src.bits[3] >> 31 ? -1 : 1;
-    result = TRUE;
-  }
-  return result;
+        tmp += pow(2, i) * get_bit(src, i);
+    while (exponent--)
+        tmp /= 10.0;
+    if (sign)
+        tmp *= -1.0;
+    *dst = tmp;
+    return FALSE;
 }
-int getFloatSign(float *src) { return *(int *)src >> 31; }
-
-int getFloatExp(float *src) { return ((*(int *)src & ~0x80000000) >> 23) - 127; }
 
 int s21_from_float_to_decimal(float src, s21_decimal *dst) {
 dst->bits[0] = dst->bits[1] = dst->bits[2] = dst->bits[3] = 0;
   int result = FALSE, sign = getFloatSign(&src), exp = getFloatExp(&src);
   if (isinf(src) && !sign)
-    dst->value_type = s21_INFINITY;
+    result = TRUE;
   else if (isinf(src) && sign)
-    dst->value_type = s21_NEGATIVE_INFINITY;
+    result = TRUE;
   else if (isnan(src))
-    dst->value_type = s21_NAN;
-
-  if (dst && dst->value_type == s21_NORMAL_VALUE && src != 0) {
+    result = TRUE;
+  if (dst && src != 0) {
     double temp = (double)fabs(src);
     int off = 0;
     for (; off < 28 && (int)temp / (int)pow(2, 21) == 0; temp *= 10, off++) {
@@ -166,26 +141,26 @@ dst->bits[0] = dst->bits[1] = dst->bits[2] = dst->bits[3] = 0;
 }
 
 int main() {
-    int d1 = 2147483650;
-    s21_decimal val_d1;
-    s21_from_int_to_decimal(d1, &val_d1);
-    print0001(val_d1);
-    printf("\n");
-    int d2;
-    s21_decimal val_d2 = {101, 1, 0, 0};
-    s21_from_decimal_to_int(val_d2, &d2);
-    printf("%d\n", d2);
+    // int d1 = 2147483650;
+    // s21_decimal val_d1;
+    // s21_from_int_to_decimal(d1, &val_d1);
+    // print0001(val_d1);
+    // printf("\n");
+    // int d2;
+    // s21_decimal val_d2 = {101, 1, 0, 0};
+    // s21_from_decimal_to_int(val_d2, &d2);
+    // printf("%d\n", d2);
     float f1;
     s21_decimal val_f1 = {5, 0, 0, 0};
     print0001(val_f1);
     printf("\n");
     s21_from_decimal_to_float(val_f1, &f1);
     printf("%.32f\n", f1);
-    float f2 = 0.5;
-    s21_decimal val_f2;
-    s21_from_float_to_decimal(f2, &val_f2);
-    print0001(val_f2);
-    printf("\n");
+    // float f2 = 0.005;
+    // s21_decimal val_f2;
+    // s21_from_float_to_decimal(f2, &val_f2);
+    // print0001(val_f2);
+    // printf("\n");
     // s21_decimal c = {0, 0, 0, 0};
     // s21_decimal num1 = {16, 0, 0, 0};
     // s21_decimal num2 = {1, 0, 0, 0};
