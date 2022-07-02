@@ -103,6 +103,32 @@ int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     }
     return  a;
 }
+
+
+int s21_mul(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
+    int sign_result;
+    if (get_sign(&value_1) != get_sign(&value_2)) {
+        sign_result = 1;
+    } else {
+        sign_result = 0;
+    }
+    int last_bit_1 = last_bit(value_1);
+    s21_decimal tmpRes = {0, 0, 0, 0};
+    int err = 0;
+    for (int i = 0; i <= last_bit_1; i++) {
+        init_struct(&tmpRes);
+        int value_bit = get_bit(value_1, i);
+        if (value_bit) {
+            tmpRes = value_2;
+            offset_left(&tmpRes, i);
+            *result = bit_add(result, &tmpRes, &err);
+        }
+    }
+    int scale_res = get_scale(&value_1) + get_scale(&value_2);
+    set_scale(result, scale_res);
+    return err;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                   СРАВНЕНИЯ                                                            //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -123,7 +149,7 @@ int s21_is_greater(s21_decimal value_1, s21_decimal value_2) {
     if (!sign_value_1 && sign_value_2) negative = 1;
     if (!sign_value_1 && !sign_value_2) negative = 2;
     if (negative == 0) is_greater = 0;
-    if (negative == 1) is_greater == 1;
+    if (negative == 1) is_greater = 1;
     check_scale(&value_1, &value_2);
 
     for (int i = 95; i >= 0 && is_greater == -1; i--) {
@@ -275,7 +301,7 @@ s21_decimal bit_add(s21_decimal *a, s21_decimal *b, int *error_code) {
             }
         }
 
-        if (i == 95 && buffer == 1 && error_code != -1) {
+        if (i == 95 && buffer == 1 && *(error_code) != -1) {
             *(error_code) = 1;
         }
     }
@@ -402,7 +428,7 @@ int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
     int small_scale = 0;
     int bigger_scale = 0;
 
-    int type = NORMAL_VALUE;
+
     int err = 0;
     int flag = 0;
     if (get_bit(*big, 95) && get_bit(*small, 95)) err = 1;
@@ -594,7 +620,7 @@ int negative(s21_decimal value_1, s21_decimal value_2) {
     if (!sign_value_1 && sign_value_2) negative = 0;
     if (sign_value_1 && !sign_value_2) negative = 1;
     if (!sign_value_1 && !sign_value_2) negative = 2;
-    return  negative;
+    return negative;
 }
 
 void check_scale(s21_decimal *value_1, s21_decimal *value_2) {
