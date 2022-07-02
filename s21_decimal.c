@@ -151,6 +151,35 @@ int s21_is_less(s21_decimal dec1, s21_decimal dec2) {
     return s21_is_greater(dec2, dec1);
 }
 
+/**
+ *
+ * @param value_1
+ * @param value_2
+ * @return 0 - false 1 - true
+ */
+int s21_is_equal(s21_decimal value_1, s21_decimal value_2) {
+    int equal = -1;
+
+    int negative = 0;
+    int sign_value_1 = get_sign(&value_1);
+    int sign_value_2 = get_sign(&value_2);
+
+    if (sign_value_1 && !sign_value_2) negative = 0;
+    if (!sign_value_1 && sign_value_2) negative = 1;
+    if (!sign_value_1 && !sign_value_2) negative = 2;
+    if (sign_value_1 && sign_value_2) negative = 3;
+    if (negative == 0 || negative == 1) equal = 0;
+
+    check_scale(&value_1, &value_2);
+    for (int i = 95; i >= 0; i--) {
+        int bit1 = get_bit(value_1, i);
+        int bit2 = get_bit(value_2, i);
+        if (bit1 != bit2) equal = 0;
+    }
+
+    return (equal != 0) ? 1 : 0;
+}
+
 
 
 

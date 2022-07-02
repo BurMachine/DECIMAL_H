@@ -58,6 +58,7 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result);
 
 int s21_is_greater(s21_decimal value_1, s21_decimal value_2);
 int s21_is_less(s21_decimal dec1, s21_decimal dec2);
+int s21_is_equal(s21_decimal value_1, s21_decimal value_2);
 
 #endif // _S21_DECIMAL_H_
 //#endif // SRC_S21_DECIMAL_H_
