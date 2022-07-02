@@ -1,6 +1,8 @@
 #include "s21_decimal.h"
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
+
 s21_decimal bit_add(s21_decimal *a, s21_decimal *b, int *error_code) {
     s21_decimal result = {0 ,0, 0, 0};
     size_t buffer = 0;
@@ -56,6 +58,7 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     } else if (get_sign(&value_1) && !get_sign(&value_2)) { // первое отрицательное, второе положительное
         s21_decimal tmp_1 = value_1;
         set_sign(&value_1, 0);
+        set_scale(&tmp_1, get_scale(&value_1));
         convert_to_addcode(&tmp_1);
         if (get_scale(&tmp_1) != get_scale(&value_2)) {
             scale = scale_equalize(&tmp_1, &value_2);
@@ -68,6 +71,7 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     } else if (!get_sign(&value_1) && get_sign(&value_2)) {
         s21_decimal tmp_1 = value_2;
         set_sign(&value_2, 0);
+        set_scale(&tmp_1, get_scale(&value_2));
         convert_to_addcode(&tmp_1);
         if (get_scale(&tmp_1) != get_scale(&value_1)) {
             scale = scale_equalize(&tmp_1, &value_1);
@@ -146,6 +150,15 @@ int s21_is_greater(s21_decimal value_1, s21_decimal value_2) {
 int s21_is_less(s21_decimal dec1, s21_decimal dec2) {
     return s21_is_greater(dec2, dec1);
 }
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                     КОНВЕРТЕРЫ                                                                    //
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 int s21_from_int_to_decimal(int src, s21_decimal *dst) {
   char result = TRUE;
   if (dst) {
@@ -315,7 +328,7 @@ int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
             s21_decimal tmp2;
             tmp1 = *big;
             tmp2 = *big;
-            if (!flag && big->bits[0] == 1)  {
+            if (!flag)  {
                 offset_left(&tmp1, 1);
                 offset_left(&tmp2, 3);
                 tmp = bit_add(&tmp1, &tmp2, &err);
