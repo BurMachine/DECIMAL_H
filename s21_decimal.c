@@ -3,42 +3,6 @@
 #include <string.h>
 #include <math.h>
 
-s21_decimal bit_add(s21_decimal *a, s21_decimal *b, int *error_code) {
-    s21_decimal result = {0 ,0, 0, 0};
-    size_t buffer = 0;
-    for (int i = 0; i < 96; i++) {
-        int current_bit_a = get_bit(*a, i);
-        int current_bit_b = get_bit(*b, i);
-
-        if (!current_bit_a && !current_bit_b) { // оба бита выключены
-            if (buffer) { // если в буфере что-то есть значит мы повышаем порядок, т.е. прошлый бит 0 , а этот будет 1
-                set_bit(&result, i, 1);
-                buffer = 0;
-            } else {
-                set_bit(&result, i, 0);
-            }
-        } else if (current_bit_a != current_bit_b) { // Один включен
-            if (buffer) {
-                set_bit(&result, i, 0);
-                buffer = 1;
-            } else {
-                set_bit(&result, i, 1);
-            }
-        } else { // Оба вкл
-            if (buffer) {
-                set_bit(&result, i, 1);
-            } else {
-                set_bit(&result, i, 0);
-                buffer = 1;
-            }
-        }
-
-        if (i == 95 && buffer == 1 && error_code != -1) {
-            *(error_code) = 1;
-        }
-    }
-    return result;
-}
 
 int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     int solution = 0;
@@ -101,6 +65,44 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     return solution;
 }
 
+
+int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
+    int a = 0;
+    int result_sign;
+    if (get_sign(&value_1) != get_sign(&value_2)) { // разные знаки => ++ --
+        result_sign = 0;
+        if (get_sign(&value_1)) result_sign = 1;
+        if (get_sign(&value_2)) result_sign = 0;
+        set_sign(&value_1, 0);
+        set_sign(&value_2, 0);
+        a = s21_add(value_1, value_2, result);
+        set_sign(result, result_sign);
+    } else { // знаки одинаковые => +- or -+
+        if (s21_is_equal(value_1, value_2)) {
+            // нужно занулить result
+        } else {
+            int sign1 = get_sign(&value_1), sign2 = get_sign(&value_2);
+            set_sign(&value_1, 0);
+            set_sign(&value_2, 0);
+            s21_decimal *small, *big;
+
+            if (s21_is_less(value_1, value_2)) {
+                small = &value_1;
+                big = &value_2;
+                result_sign = !sign2;
+            } else {
+                small = &value_2;
+                big = &value_1;
+                result_sign = sign1;
+            }
+
+            convert_to_addcode(small);
+            a = s21_add(*small, *big, result);
+            set_sign(result, result_sign);
+        }
+    }
+    return  a;
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                   СРАВНЕНИЯ                                                            //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -242,6 +244,44 @@ int s21_from_decimal_to_int(s21_decimal src, int *dst) {
 //********************************************************************************************************//
 //********************************************************************************************************//
 //********************************************************************************************************//
+
+s21_decimal bit_add(s21_decimal *a, s21_decimal *b, int *error_code) {
+    s21_decimal result = {0 ,0, 0, 0};
+    size_t buffer = 0;
+    for (int i = 0; i < 96; i++) {
+        int current_bit_a = get_bit(*a, i);
+        int current_bit_b = get_bit(*b, i);
+
+        if (!current_bit_a && !current_bit_b) { // оба бита выключены
+            if (buffer) { // если в буфере что-то есть значит мы повышаем порядок, т.е. прошлый бит 0 , а этот будет 1
+                set_bit(&result, i, 1);
+                buffer = 0;
+            } else {
+                set_bit(&result, i, 0);
+            }
+        } else if (current_bit_a != current_bit_b) { // Один включен
+            if (buffer) {
+                set_bit(&result, i, 0);
+                buffer = 1;
+            } else {
+                set_bit(&result, i, 1);
+            }
+        } else { // Оба вкл
+            if (buffer) {
+                set_bit(&result, i, 1);
+            } else {
+                set_bit(&result, i, 0);
+                buffer = 1;
+            }
+        }
+
+        if (i == 95 && buffer == 1 && error_code != -1) {
+            *(error_code) = 1;
+        }
+    }
+    return result;
+}
+
 
 int get_bit(const s21_decimal a, int bit_number) {
     int result = 0;
