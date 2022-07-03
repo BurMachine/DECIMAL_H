@@ -48,6 +48,7 @@ int is_equal_b(s21_decimal dec1, s21_decimal dec2);
 int is_greater(s21_decimal num1, s21_decimal num2);
 int is_less_b(s21_decimal num1, s21_decimal num2);
 s21_decimal division_without_scale(s21_decimal num1, s21_decimal num2);
+s21_decimal div_only_bits(s21_decimal number_1, s21_decimal number_2, s21_decimal *buf);
 
 
 
@@ -59,6 +60,7 @@ int s21_from_float_to_decimal(float src, s21_decimal *dst);
 int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result);
 int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result);
 int s21_mul(s21_decimal value_1, s21_decimal value_2, s21_decimal *result);
+int s21_div(s21_decimal value_1, s21_decimal value_2, s21_decimal *result);
 
 
 int s21_is_greater(s21_decimal value_1, s21_decimal value_2);

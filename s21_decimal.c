@@ -155,6 +155,54 @@ int s21_mul(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     return err;
 }
 
+int s21_div(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
+    int beginScale = get_scale(&value_1) - get_scale(&value_2);
+    int Sign = get_sign(&value_1) != get_sign(&value_2);
+    int res = 0;
+    s21_decimal remainder, tmp;
+    set_scale(&value_1, 0);
+    set_scale(&value_2, 0);
+    set_sign(&value_1, 0);
+    set_sign(&value_2, 0);
+
+    tmp = div_only_bits(value_1, value_2, &remainder);
+    copy_bits(remainder, result);
+
+    s21_decimal border = {-1, -1, -1, 0};
+    s21_decimal  ten = {10, 0, 0, 0};
+    s21_decimal zero = {0, 0, 0, 0};
+    set_scale(&border, 1);
+    int insideScale = 0;
+    if (s21_is_equal(value_2, zero)) res = 3;
+    for (; insideScale <= 27 && s21_is_equal(remainder, zero) == FALSE;)  {
+        if (s21_is_less(*result, border) == FALSE) {
+            break;
+        }
+        s21_decimal tmp1 = {0, 0, 0, 0};
+        s21_mul(remainder, ten, &tmp1);
+        remainder = tmp1;
+        tmp = div_only_bits(remainder, value_1, &remainder);
+        s21_mul(*result, ten, result);
+        s21_add(*result, tmp, result);
+        insideScale++;
+    }
+    s21_decimal trash;
+    int endScale = beginScale + insideScale;
+    for (; endScale > 28;) {
+        *result = div_only_bits(*result, ten, &trash);
+        endScale--;
+    }
+    for (; endScale < 0;) {
+        s21_mul(*result, ten, result);
+        endScale++;
+    }
+
+    set_scale(result, endScale);
+    set_sign(result, Sign);
+
+    return res;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                   СРАВНЕНИЯ                                                            //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -772,4 +820,32 @@ void check_scale(s21_decimal *value_1, s21_decimal *value_2) {
     if (scale_1 != scale_2) {
         scale_equalize(value_1, value_2);
     }
+}
+
+/**
+ * @brief Деление битов игнорируется степень
+ * @param a число децимал
+ * @param b число децимал
+ * @param buf остаток от деления
+ * @return s21_decimal результат деление (целая часть)
+ */
+s21_decimal div_only_bits(s21_decimal number_1, s21_decimal number_2,
+                          s21_decimal *buf) {
+    init_struct(buf);
+    s21_decimal res = {{0, 0, 0, 0}, 0};
+    for (int i = last_bit(number_1); i >= 0; i--) {
+        if (get_bit(number_1, i)) set_bit(buf, 0, 1);
+        if (s21_is_greater_or_equal(*buf, number_2) == TRUE) {
+            *buf = s21_sub(*buf, number_2);
+            if (i != 0) offset_left(buf, 1);
+            if (get_bit(number_1, i - 1)) set_bit(buf, 0, 1);
+            offset_left(&res, 1);
+            set_bit(&res, 0, 1);
+        } else {
+            offset_left(&res, 1);
+            if (i != 0) offset_left(buf, 1);
+            if ((i - 1) >= 0 && get_bit(number_1, i - 1)) set_bit(buf, 0, 1);
+        }
+    }
+    return res;
 }
