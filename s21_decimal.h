@@ -2,22 +2,19 @@
 #define SRC_S21_DECIMAL_H_*/
 #ifndef _S21_DECIMAL_H_
 #define _S21_DECIMAL_H_
-
-//typedef enum {
-//  s21_NORMAL_VALUE = 0,
-//  s21_INFINITY = 1,
-//  s21_NEGATIVE_INFINITY = 2,
-//  s21_NAN = 3,
-////   s21_ADDCODE = 4
-//} value_type_t;
-
 #define TRUE  1
 #define FALSE  0
+#define s21_ok 0
+#define s21_convert_error  1
 
 typedef struct {
  unsigned int bits[4];
-//  value_type_t value_type;
 } s21_decimal;
+
+typedef union {
+  float fl;
+  int ui;
+}bitsun;
 
 typedef enum{
     NORMAL_VALUE,
@@ -43,7 +40,8 @@ void convert_to_addcode(s21_decimal *number_1);
 int scale_equalize(s21_decimal *number1, s21_decimal *number2);
 int negative(s21_decimal value_1, s21_decimal value_2);
 void check_scale(s21_decimal *value_1, s21_decimal *value_2);
-
+int getFloatSign(float *src);
+int getFloatExp(float *src);
 /* support bit function(not solution of the task) */
 int is_greater_or_equal(s21_decimal dec1, s21_decimal dec2);
 int is_equal_b(s21_decimal dec1, s21_decimal dec2);
@@ -55,7 +53,8 @@ s21_decimal division_without_scale(s21_decimal num1, s21_decimal num2);
 
 int s21_from_int_to_decimal(int src, s21_decimal *dst);
 int s21_from_decimal_to_int(s21_decimal src, int *dst);
-
+int s21_from_decimal_to_float(s21_decimal src, float *dst);
+int s21_from_float_to_decimal(float src, s21_decimal *dst);
 
 int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result);
 int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result);

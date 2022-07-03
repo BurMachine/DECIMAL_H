@@ -3,18 +3,17 @@
 #include <math.h>
 #define TRUE  1
 #define FALSE  0
+#define s21_ok 0
+#define s21_convert_error  1
 
 typedef struct {
   unsigned int bits[4];
 } s21_decimal;
 
-typedef enum {
-  s21_NORMAL_VALUE = 0,
-  s21_INFINITY = 1,
-  s21_NEGATIVE_INFINITY = 2,
-  s21_NAN = 3,
-  s21_ADDCODE = 4
-}value_type;
+typedef union {
+  float fl;
+  int ui;
+}bitsun;
 
 void print01(int i, int szf) {
     while (szf--) {
@@ -49,6 +48,17 @@ void set_sign(s21_decimal *a, int sign_value) {
 int get_scale(const s21_decimal *a) {
     return (char)(a->bits[3] >> 16);
 }
+void set_scale(s21_decimal *varPtr, int scale) {
+    if (scale < 0 || scale > 28) {
+        printf("wrong scale = %d\n", scale);
+    } else {
+        int clearMask = ~(0xFF << 16);
+        varPtr->bits[3] &= clearMask;
+        int mask = scale << 16;
+        varPtr->bits[3] |= mask;
+    }
+}
+
 int get_bit(const s21_decimal a, int bit_number) {
     int result = 0;
     if (bit_number / 32 < 4) {
@@ -93,30 +103,32 @@ int getFloatExp(float *src) {
 }
 
 int s21_from_decimal_to_float(s21_decimal src, float *dst) {
+    char result = FALSE;
     int sign = get_sign(&src);
     if (!dst)
-        return TRUE;
-    int exponent = get_scale(&src);
+        result = TRUE;
+    int exp = get_scale(&src);
     long double tmp = 0;
     for (int i = 0; i < 96; i++)
         tmp += pow(2, i) * get_bit(src, i);
-    while (exponent--)
+    while (exp--)
         tmp /= 10.0;
     if (sign)
         tmp *= -1.0;
     *dst = tmp;
-    return FALSE;
+    return result;
 }
 
 int s21_from_float_to_decimal(float src, s21_decimal *dst) {
 dst->bits[0] = dst->bits[1] = dst->bits[2] = dst->bits[3] = 0;
   int result = FALSE, sign = getFloatSign(&src), exp = getFloatExp(&src);
   if (isinf(src) && !sign)
-    result = TRUE;
+    result = s21_convert_error;
   else if (isinf(src) && sign)
-    result = TRUE;
+    result = s21_convert_error;
   else if (isnan(src))
-    result = TRUE;
+    result = s21_convert_error;
+
   if (dst && src != 0) {
     double temp = (double)fabs(src);
     int off = 0;
@@ -124,21 +136,50 @@ dst->bits[0] = dst->bits[1] = dst->bits[2] = dst->bits[3] = 0;
     }
     temp = round(temp);
     if (off <= 28 && (exp > -94 && exp < 96)) {
+      bitsun mant;
       temp = (float)temp;
       for (; fmod(temp, 10) == 0 && off > 0; off--, temp /= 10) {
       }
-      float fl = temp;
-      int ui;
-      exp = getFloatExp(&fl);
+      mant.fl = temp;
+      exp = getFloatExp(&mant.fl);
       dst->bits[exp / 32] |= 1 << exp % 32;
       for (int i = exp - 1, j = 22; j >= 0; i--, j--)
-        if ((ui & (1 << j)) != 0) dst->bits[i / 32] |= 1 << i % 32;
+        if ((mant.ui & (1 << j)) != 0) dst->bits[i / 32] |= 1 << i % 32;
       dst->bits[3] = (sign << 31) | (off << 16);
       result = TRUE;
     }
   }
   return result;
 }
+
+// int s21_floor(s21_decimal value, s21_decimal *result) {
+   
+// }
+
+// int s21_truncate(s21_decimal value, s21_decimal *result) {
+//     memset(result, 0, sizeof(*result));
+//     int sign = get_sign(value);
+//     int exponent = get_scale(value);
+//     set_sign_pos(&value);
+
+//     /* set sign & exponent to 0 for future division */
+//     value.bits[3] = 0;
+
+//     if (!exponent) {
+//         *result = value;
+//     } else {
+//         while (exponent--) {
+//             if (s21_div(value, get_power_of_ten(1), result))
+//                 return CONVERTATION_ERROR;
+//             value = *result;
+//         }
+//     }
+
+//     set_sign(result, sign);
+
+//     return CONVERTATION_OK;
+// }
+// }
 
 int main() {
     // int d1 = 2147483650;
@@ -151,17 +192,17 @@ int main() {
     // s21_from_decimal_to_int(val_d2, &d2);
     // printf("%d\n", d2);
     float f1;
-    s21_decimal val_f1 = {5, 0, 0, 0};
+    s21_decimal val_f1 = {121, 0, 0, set_scale(&val_f1, 3)};
     print0001(val_f1);
     printf("\n");
     s21_from_decimal_to_float(val_f1, &f1);
     printf("%.32f\n", f1);
-    // float f2 = 0.005;
+    // float f2 = 345423.3242;
     // s21_decimal val_f2;
     // s21_from_float_to_decimal(f2, &val_f2);
     // print0001(val_f2);
     // printf("\n");
-    // s21_decimal c = {0, 0, 0, 0};
+   // s21_decimal c = {0, 0, 0, 0};
     // s21_decimal num1 = {16, 0, 0, 0};
     // s21_decimal num2 = {1, 0, 0, 0};
 //    set_bit(&num1, 95, 1);
@@ -178,4 +219,5 @@ int main() {
     // print0001(c);
     // printf("\n");
     // printf("%d\n%d", get_scale(&num1), get_scale(&num2));
+
 }
