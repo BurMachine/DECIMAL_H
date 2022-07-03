@@ -152,34 +152,56 @@ dst->bits[0] = dst->bits[1] = dst->bits[2] = dst->bits[3] = 0;
   return result;
 }
 
-// int s21_floor(s21_decimal value, s21_decimal *result) {
-   
+int s21_floor(s21_decimal value, s21_decimal *result) {
+  s21_decimal dec1_copy = value;
+  int valid_value = 0;
+  int sign_dec1 = get_sign(&value);
+  int scale_dec1 = get_scale(&value);
+  s21_decimal one = {1, 0, 0, 0};
+  s21_decimal ten = {10, 0, 0, 0};
+  s21_decimal buf;
+  init_struct(&buf);
+  for (int i = scale_dec1; i > 0; i--) value = div_only_bits(value, ten, &buf);
+  set_scale(&value, 0);
+  if (s21_is_equal(value, dec1_copy) == TRUE) valid_value = 0;
+  if (sign_dec1 && valid_value) {
+    value = s21_add(value, one);
+    set_sign(result, 1);
+  }
+  return s21_ok;  
+}
+// int s21_round(s21_decimal value, s21_decimal *result) {
+
 // }
 
-// int s21_truncate(s21_decimal value, s21_decimal *result) {
-//     memset(result, 0, sizeof(*result));
-//     int sign = get_sign(value);
-//     int exponent = get_scale(value);
-//     set_sign_pos(&value);
+int s21_negate(s21_decimal value, s21_decimal *result) {
+    for (int i = 0; i < 4; i++)
+        result->bits[i] = value.bits[i];
+    set_sign(result, !get_sign(&value));
+    return s21_ok;
+}
 
-//     /* set sign & exponent to 0 for future division */
-//     value.bits[3] = 0;
+ int s21_truncate(s21_decimal value, s21_decimal *result) {
+    s21_decimal ten = {10, 0, 0, 0};
+    s21_decimal res = {0, 0, 0, 0};
+    s21_decimal tmp = {0, 0, 0, 0};
+    s21_decimal zero = {0, 0, 0, 0};
+    int sign = get_sign(&value);
+    int scale = get_scale(&value);
+    int solution = 0;
+    if (!scale) {
+        *result = value;
+    } else {
+        for (int i = scale; i > 0; i--) {
+            *result = division_without_scale(value, ten);
+            value = *result;
+        }
+        if (s21_is_equal(*result, zero)) solution = 1;
+    }
+    if (sign && solution) set_sign(result, 1);
+    return solution;
+}
 
-//     if (!exponent) {
-//         *result = value;
-//     } else {
-//         while (exponent--) {
-//             if (s21_div(value, get_power_of_ten(1), result))
-//                 return CONVERTATION_ERROR;
-//             value = *result;
-//         }
-//     }
-
-//     set_sign(result, sign);
-
-//     return CONVERTATION_OK;
-// }
-// }
 
 int main() {
     // int d1 = 2147483650;
@@ -191,12 +213,13 @@ int main() {
     // s21_decimal val_d2 = {101, 1, 0, 0};
     // s21_from_decimal_to_int(val_d2, &d2);
     // printf("%d\n", d2);
-    float f1;
-    s21_decimal val_f1 = {121, 0, 0, set_scale(&val_f1, 3)};
-    print0001(val_f1);
-    printf("\n");
-    s21_from_decimal_to_float(val_f1, &f1);
-    printf("%.32f\n", f1);
+    // float f1;
+    // s21_decimal val_f1 = {121, 0, 0, 0};
+    // set_scale(&val_f1, 3);
+    // print0001(val_f1);
+    // printf("\n");
+    // s21_from_decimal_to_float(val_f1, &f1);
+    // printf("%.5f\n", f1);
     // float f2 = 345423.3242;
     // s21_decimal val_f2;
     // s21_from_float_to_decimal(f2, &val_f2);
@@ -219,5 +242,11 @@ int main() {
     // print0001(c);
     // printf("\n");
     // printf("%d\n%d", get_scale(&num1), get_scale(&num2));
-
+ s21_decimal f1 = {1, 0, 0, 0};
+ s21_decimal f2;
+ s21_negate(f1, &f2);
+    print0001(f1);
+    printf("\n");
+    print0001(f2);
+    printf("\n");
 }
