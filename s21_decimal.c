@@ -390,6 +390,33 @@ dst->bits[0] = dst->bits[1] = dst->bits[2] = dst->bits[3] = 0;
   return result;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//                              ДРУГИЕ ФУНКЦИИ                                                       //
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+int s21_truncate(s21_decimal value, s21_decimal *result) {
+    s21_decimal ten = {10, 0, 0, 0};
+    s21_decimal res = {0, 0, 0, 0};
+    s21_decimal tmp = {0, 0, 0, 0};
+    s21_decimal zero = {0, 0, 0, 0};
+    int sign = get_sign(&value);
+    int scale = get_scale(&value);
+    int solution = 0;
+    if (!scale) {
+        *result = value;
+    } else {
+        for (int i = scale; i > 0; i--) {
+//            *result = division_without_scale(value, ten);
+            *result = div_only_bits(value, ten, &tmp);
+            value = *result;
+        }
+        if (s21_is_equal(*result, zero)) solution = 1;
+    }
+    if (sign && solution) set_sign(result, 1);
+    return solution;
+}
+
 
 //********************************************************************************************************//
 //********************************************************************************************************//
@@ -425,14 +452,15 @@ s21_decimal bit_add(s21_decimal *a, s21_decimal *b, int *error_code) {
         } else { // Оба вкл
             if (buffer) {
                 set_bit(&result, i, 1);
+                buffer = 1;
             } else {
                 set_bit(&result, i, 0);
                 buffer = 1;
             }
         }
 
-        if (i == 95 && buffer == 1 && *(error_code) != -1) {
-            *(error_code) = 1;
+        if (i == 95 && buffer == 1 && *error_code != -1) {
+            *error_code = 1;
         }
     }
     return result;
@@ -832,11 +860,13 @@ void check_scale(s21_decimal *value_1, s21_decimal *value_2) {
 s21_decimal div_only_bits(s21_decimal number_1, s21_decimal number_2,
                           s21_decimal *buf) {
     init_struct(buf);
-    s21_decimal res = {{0, 0, 0, 0}, 0};
+    s21_decimal res = {0, 0, 0, 0};
     for (int i = last_bit(number_1); i >= 0; i--) {
         if (get_bit(number_1, i)) set_bit(buf, 0, 1);
         if (s21_is_greater_or_equal(*buf, number_2) == TRUE) {
-            *buf = s21_sub(*buf, number_2);
+            s21_decimal tmp1 = {0, 0, 0, 0};
+            s21_sub(*buf, number_2, &tmp1);
+            *buf = tmp1;
             if (i != 0) offset_left(buf, 1);
             if (get_bit(number_1, i - 1)) set_bit(buf, 0, 1);
             offset_left(&res, 1);
