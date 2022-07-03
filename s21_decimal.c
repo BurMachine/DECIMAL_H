@@ -126,6 +126,32 @@ int s21_mul(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     }
     int scale_res = get_scale(&value_1) + get_scale(&value_2);
     set_scale(result, scale_res);
+
+
+    if (err || (get_scale(result) > 28 || get_scale(result) < 0)) {
+        s21_decimal *big;
+        if (is_greater(value_1, value_2)) {
+            big = &value_1;
+        } else {
+            big = &value_2;
+        }
+        while(err && (get_scale(result) <= 28) &&  (get_scale(result) >= 0)) {
+            if (err && (get_scale(result) <= 28) && (get_scale(result) >= 0)) {
+                s21_decimal ten = {10, 0, 0, 0};
+                s21_decimal zero = {0, 0, 0, 0};
+
+                s21_decimal tmp = {0, 0, 0, 0};
+                tmp = division_without_scale(*big, ten);
+                if (is_equal_b(tmp, zero) != 0) { // tmp не полностью обрезался
+                    copy_bits(tmp, big);
+                } if (is_equal_b(tmp, zero) == 0) { // обрезался, нужны идеи как быть в этой ситуации(мб остаток от деления ставить)
+                    copy_bits(tmp, big);
+                }
+                int bigger_scale = get_scale(big);
+                set_scale(big, bigger_scale - 1);
+            }
+        }
+    }
     return err;
 }
 
