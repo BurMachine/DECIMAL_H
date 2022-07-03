@@ -174,7 +174,7 @@ int s21_is_greater(s21_decimal value_1, s21_decimal value_2) {
  * @return 0 - меньше, 1 - больше
  */
 int s21_is_less(s21_decimal dec1, s21_decimal dec2) {
-    return s21_is_greater(dec2, dec1);
+    return !!s21_is_greater(dec2, dec1);
 }
 
 /**
@@ -409,6 +409,7 @@ int zero_check(s21_decimal num1, s21_decimal num2) {
  * @param number2 второе соответственно
  * @return общий скейл
  */
+
 int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
     s21_decimal *big = NULL;
     s21_decimal  *small = NULL;
@@ -428,33 +429,24 @@ int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
     int small_scale = 0;
     int bigger_scale = 0;
 
-
     int err = 0;
-    int flag = 0;
     if (get_bit(*big, 95) && get_bit(*small, 95)) err = 1;
     while (get_scale(number1) != get_scale(number2)) {
+
         if (!err) {
-            bigger_scale = get_scale(big);
+            small_scale = get_scale(small);
             s21_decimal tmp1;
             s21_decimal tmp2;
-            tmp1 = *big;
-            tmp2 = *big;
-            if (!flag)  {
-                offset_left(&tmp1, 1);
-                offset_left(&tmp2, 3);
-                tmp = bit_add(&tmp1, &tmp2, &err);
-                copy_bits(tmp, big);
-                tmp1 = *big;
-                tmp2 = *big;
-                flag = 1;
-            }
+
+            tmp1 = *small;
+            tmp2 = *small;
             offset_left(&tmp1, 1);
             offset_left(&tmp2, 3);
             tmp = bit_add(&tmp1, &tmp2, &err);
             if (get_bit(tmp, 95)) err = 1;
             if (err != 1) {
-                copy_bits(tmp, big);
-                set_scale(big, bigger_scale - 1);
+                copy_bits(tmp, small);
+                set_scale(small, small_scale + 1);
             }
         }
         if (err) {
@@ -462,19 +454,87 @@ int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
             s21_decimal ten = {10, 0, 0, 0};
             s21_decimal zero = {0, 0, 0, 0};
 
-            s21_decimal tmp12 = {0, 0, 0, 0};
-            tmp12 = division_without_scale(*big, ten);
-            if (is_equal_b(tmp12, zero) != 0) { // tmp не полностью обрезался
-                copy_bits(tmp12, small);
-            } if (is_equal_b(tmp12, zero) == 0) { // обрезался, нужны идеи как быть в этой ситуации(мб остаток от деления ставить)
-                copy_bits(tmp12, small);
+            s21_decimal tmp = {0, 0, 0, 0};
+            tmp = division_without_scale(*big, ten);
+            if (is_equal_b(tmp, zero) != 0) { // tmp не полностью обрезался
+                copy_bits(tmp, big);
+            } if (is_equal_b(tmp, zero) == 0) { // обрезался, нужны идеи как быть в этой ситуации(мб остаток от деления ставить)
+                copy_bits(tmp, big);
             }
             bigger_scale = get_scale(big);
-            set_scale(small, small_scale + 1);
+            set_scale(big, bigger_scale - 1);
         }
     }
     return get_scale(number1);
 }
+
+
+//int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
+//    s21_decimal *big = NULL;
+//    s21_decimal  *small = NULL;
+//    int process = 1;
+//    if (get_scale(number1) == get_scale(number2)) {
+//        process = 0;
+//    } else if (get_scale(number1) > get_scale(number2)) {
+//        big = number1;
+//        small = number2;
+//    } else {
+//        big = number2;
+//        small = number1;
+//    }
+//
+//    s21_decimal tmp;
+//    init_struct(&tmp);
+//    int small_scale = 0;
+//    int bigger_scale = 0;
+//
+//
+//    int err = 0;
+//    int flag = 0;
+//    if (get_bit(*big, 95) && get_bit(*small, 95)) err = 1;
+//    while (get_scale(number1) != get_scale(number2)) {
+//        if (!err) {
+//            bigger_scale = get_scale(big);
+//            s21_decimal tmp1;
+//            s21_decimal tmp2;
+//            tmp1 = *big;
+//            tmp2 = *big;
+//            if (!flag)  {
+//                offset_left(&tmp1, 1);
+//                offset_left(&tmp2, 3);
+//                tmp = bit_add(&tmp1, &tmp2, &err);
+//                copy_bits(tmp, big);
+//                tmp1 = *big;
+//                tmp2 = *big;
+//                flag = 1;
+//            }
+//            offset_left(&tmp1, 1);
+//            offset_left(&tmp2, 3);
+//            tmp = bit_add(&tmp1, &tmp2, &err);
+//            if (get_bit(tmp, 95)) err = 1;
+//            if (err != 1) {
+//                copy_bits(tmp, big);
+//                set_scale(big, bigger_scale - 1);
+//            }
+//        }
+//        if (err) {
+//            // деление большего скейла на 10
+//            s21_decimal ten = {10, 0, 0, 0};
+//            s21_decimal zero = {0, 0, 0, 0};
+//
+//            s21_decimal tmp12 = {0, 0, 0, 0};
+//            tmp12 = division_without_scale(*big, ten);
+//            if (is_equal_b(tmp12, zero) != 0) { // tmp не полностью обрезался
+//                copy_bits(tmp12, small);
+//            } if (is_equal_b(tmp12, zero) == 0) { // обрезался, нужны идеи как быть в этой ситуации(мб остаток от деления ставить)
+//                copy_bits(tmp12, small);
+//            }
+//            bigger_scale = get_scale(big);
+//            set_scale(small, small_scale + 1);
+//        }
+//    }
+//    return get_scale(number1);
+//}
 /**
  * @brief Функция переводит число децимал в доп.код
  * @param number_1 указатель на число децимал
