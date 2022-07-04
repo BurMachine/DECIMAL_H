@@ -646,8 +646,7 @@ int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
             offset_left(&tmp1, 1);
             offset_left(&tmp2, 3);
             tmp = bit_add(&tmp1, &tmp2, &err);
-            if (get_bit(tmp, 95))
-//                err = 1;
+            if (get_bit(tmp, 95)) err = 1;
             if (err != 1) {
                 copy_bits(tmp, small);
                 set_scale(small, small_scale + 1);
@@ -810,10 +809,9 @@ s21_decimal division_without_scale(s21_decimal num1, s21_decimal num2) {
 
         sub = tmp;
         int counter = 0;
-        int err = 0;
         while (is_greater_or_equal(sub, null) != 0 && sub.bits[0] > 0) {
-            sub = bit_add(&sub, &num2, &err);
-            if (sub.bits[0]) result1 = bit_add(&result1, &one, &err);
+            sub = bit_add(&sub, &num2, 0);
+            if (sub.bits[0]) result1 = bit_add(&result1, &one, 0);
             counter++;
         }
         if (flag_null && !flag_ones) {
@@ -825,7 +823,7 @@ s21_decimal division_without_scale(s21_decimal num1, s21_decimal num2) {
         }
         flag_ones = 0;
         flag_null = 0;
-        tmp = bit_add(&tmp, &num2, &err);
+        tmp = bit_add(&tmp, &num2, 0);
         for(int j = last_bit(result1); j >= 0; j--) {
             if (flag_offset_result == 0) {
                 set_bit(&result, 0, get_bit(result1, j));
