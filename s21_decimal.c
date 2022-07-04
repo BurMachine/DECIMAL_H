@@ -917,3 +917,9 @@ s21_decimal div_only_bits(s21_decimal number_1, s21_decimal number_2,
     }
     return res;
 }
+int s21_negate(s21_decimal value, s21_decimal *result) {
+    for (int i = 0; i < 4; i++)
+        result->bits[i] = value.bits[i];
+    set_sign(result, !get_sign(&value));
+    return s21_ok;
+}
