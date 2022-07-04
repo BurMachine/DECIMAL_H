@@ -7,13 +7,14 @@
 int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     int solution = 0;
     int scale = 0;
+    int err = 0;
     // написать чек на допустимость значения (хз надо ли)
     // пока обрабатывает только целые числа(scale на подходе)
     if (!get_sign(&value_1) && !get_sign(&value_2)) {
         if (get_scale(&value_1) != get_scale(&value_2)) {
             scale = scale_equalize(&value_1, &value_2);
         }
-        int err = 0;
+
         *result = bit_add(&value_1, &value_2, &err);
         if (err == 1) {
             // infinity
@@ -166,7 +167,7 @@ int s21_div(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     set_sign(&value_2, 0);
 
     tmp = div_only_bits(value_1, value_2, &remainder);
-    copy_bits(remainder, result);
+    copy_bits(tmp, result);
 
     s21_decimal border = {-1, -1, -1, 0};
     s21_decimal  ten = {10, 0, 0, 0};
@@ -181,9 +182,15 @@ int s21_div(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
         s21_decimal tmp1 = {0, 0, 0, 0};
         s21_mul(remainder, ten, &tmp1);
         remainder = tmp1;
-        tmp = div_only_bits(remainder, value_1, &remainder);
-        s21_mul(*result, ten, result);
-        s21_add(*result, tmp, result);
+        clear_bits(&tmp1);
+        tmp = div_only_bits(remainder, value_2, &tmp1);
+        remainder = tmp1;
+        clear_bits(&tmp1);
+        s21_mul(*result, ten, &tmp1);
+        *result = tmp1;
+        clear_bits(&tmp1);
+        s21_add(*result, tmp, &tmp1);
+        *result = tmp1;
         insideScale++;
     }
     s21_decimal trash;
@@ -199,6 +206,31 @@ int s21_div(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
 
     set_scale(result, endScale);
     set_sign(result, Sign);
+
+    return res;
+}
+
+int s21_mod(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
+    s21_decimal tmp;
+    s21_decimal tmp1;
+    int res = 0;
+    int div = 0, mul = 0, trun = 0, sub = 0;
+    init_struct(&tmp);
+    init_struct(&tmp1);
+    div = s21_div(value_1, value_2, &tmp);
+    trun = s21_truncate(tmp, &tmp1);
+    tmp = tmp1;
+    clear_bits(&tmp1);
+    mul = s21_mul(tmp, value_2, &tmp1);
+    tmp = tmp1;
+    sub = s21_sub(value_1, tmp, result);
+    if (div != 0) {
+        res = div;
+    } else if (mul != 0) {
+        res = mul;
+    } else if (sub != 0) {
+//        res = sub;
+    } else {}
 
     return res;
 }
@@ -431,6 +463,7 @@ int s21_truncate(s21_decimal value, s21_decimal *result) {
 s21_decimal bit_add(s21_decimal *a, s21_decimal *b, int *error_code) {
     s21_decimal result = {0 ,0, 0, 0};
     size_t buffer = 0;
+    int flag = 0;
     for (int i = 0; i < 96; i++) {
         int current_bit_a = get_bit(*a, i);
         int current_bit_b = get_bit(*b, i);
@@ -459,10 +492,14 @@ s21_decimal bit_add(s21_decimal *a, s21_decimal *b, int *error_code) {
             }
         }
 
-        if (i == 95 && buffer == 1 && *error_code != -1) {
+        if (i == 95 && buffer == 1 && (current_bit_a || current_bit_b) && *error_code != -1) {
             *error_code = 1;
+        } else if (*error_code == -1 && flag != 1) {
+            flag = 1;
         }
+        flag = 0;
     }
+    if (flag == 1) *error_code = 0;
     return result;
 }
 
@@ -699,11 +736,12 @@ int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
  */
 void convert_to_addcode(s21_decimal *number_1) {
     s21_decimal res;
+    int err = -1;
     s21_decimal add = {1, 0, 0, 0};
     number_1->bits[0] = ~number_1->bits[0];
     number_1->bits[1] = ~number_1->bits[1];
     number_1->bits[2] = ~number_1->bits[2];
-    res = bit_add(number_1, &add,0);
+    res = bit_add(number_1, &add,&err);
     number_1->bits[0] = res.bits[0];
     number_1->bits[1] = res.bits[1];
     number_1->bits[2] = res.bits[2];
