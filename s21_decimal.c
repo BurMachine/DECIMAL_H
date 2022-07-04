@@ -106,7 +106,7 @@ s21_decimal division_without_scale(s21_decimal num1, s21_decimal num2) {
         int err = 0;
         while (is_greater_or_equal(sub, null) != 0 && sub.bits[0] > 0) {
             sub = bit_add(&sub, &num2, &err);
-            if (sub.bits[0] >= 0) result1 = bit_add(&result1, &one, &err);
+            if (sub.bits[0]) result1 = bit_add(&result1, &one, &err);
             counter++;
         }
         if (flag_null && !flag_ones) {
@@ -839,65 +839,6 @@ void copy_bits(s21_decimal src, s21_decimal *dest) {
     dest->bits[1] = src.bits[1];
     dest->bits[2] = src.bits[2];
 }
-
-<<<<<<< HEAD
-=======
-    int i = last_bit(num1);
-    int flag_offset = 0;
-    int flag_offset_result = 0;
-    int flag_null = 0;
-    int flag_ones = 1;
-    for (;i >= 0; i--) {
-        if (is_less_b(tmp, div_num2) && !is_equal_b(tmp, div_num2)) {  // для деления столбиком нахожу первое число, которое будет не меньше чем то , на которое делим. дальше делим(вычетанием) tmp
-            if (flag_offset == 0) {
-                set_bit(&tmp, 0, get_bit(num1, i));
-                flag_offset = 1;
-                if(is_less_b(tmp, div_num2) && !is_equal_b(tmp, div_num2)) continue;
-            } else if (is_equal_b(tmp, null)) {
-                set_bit(&tmp, 0, get_bit(num1, i));
-                if(is_less_b(tmp, div_num2) && !is_equal_b(tmp, div_num2) && i != 0) {flag_null++; continue;}
-            } else {
-                offset_left(&tmp, 1);
-                set_bit(&tmp, 0, get_bit(num1, i));
-                if(is_less_b(tmp, div_num2) && !is_equal_b(tmp, div_num2) && i != 0) {flag_null++; continue;}
-            }
-        }
-        if (i == 0 && !get_bit(num1, 0)) {
-            flag_null = 1;
-        }
-
-        sub = tmp;
-        int counter = 0;
-        while (is_greater_or_equal(sub, null) != 0 && sub.bits[0] > 0) {
-            sub = bit_add(&sub, &num2, 0);
-            if (sub.bits[0]) result1 = bit_add(&result1, &one, 0);
-            counter++;
-        }
-        if (flag_null && !flag_ones) {
-            while (flag_null) {
-                offset_left(&result, 1);
-                set_bit(&result, 0, 0);
-                flag_null--;
-            }
-        }
-        flag_ones = 0;
-        flag_null = 0;
-        tmp = bit_add(&tmp, &num2, 0);
-        for(int j = last_bit(result1); j >= 0; j--) {
-            if (flag_offset_result == 0) {
-                set_bit(&result, 0, get_bit(result1, j));
-                flag_offset_result = 1;
-            } else {
-                offset_left(&result, 1);
-                set_bit(&result, 0, get_bit(result1, j));
-            }
-        }
-        clear_bits(&result1);
-
-    }
-    return  result;
-}
->>>>>>> ca685fd6c2a7df7dc47a4e8642d930e33045db80
 
 
 int is_less_b(s21_decimal num1, s21_decimal num2) {
