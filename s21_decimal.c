@@ -798,7 +798,7 @@ s21_decimal division_without_scale(s21_decimal num1, s21_decimal num2) {
         int counter = 0;
         while (is_greater_or_equal(sub, null) != 0 && sub.bits[0] > 0) {
             sub = bit_add(&sub, &num2, 0);
-            if (sub.bits[0] >= 0) result1 = bit_add(&result1, &one, 0);
+            if (sub.bits[0]) result1 = bit_add(&result1, &one, 0);
             counter++;
         }
         if (flag_null && !flag_ones) {
