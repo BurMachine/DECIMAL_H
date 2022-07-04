@@ -24,12 +24,10 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
         s21_decimal tmp_1 = value_1;
         set_sign(&value_1, 0);
         set_scale(&tmp_1, get_scale(&value_1));
-        convert_to_addcode(&tmp_1);
         if (get_scale(&tmp_1) != get_scale(&value_2)) {
             scale = scale_equalize(&tmp_1, &value_2);
         }
-        int err = -1;
-        *result = bit_add(&tmp_1, &value_2, &err);
+        s21_sub(value_2, value_1, result);
         if (s21_is_greater(value_1, value_2)) {
             set_bit(result, 127, 1);
         }
@@ -37,12 +35,10 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
         s21_decimal tmp_1 = value_2;
         set_sign(&value_2, 0);
         set_scale(&tmp_1, get_scale(&value_2));
-        convert_to_addcode(&tmp_1);
         if (get_scale(&tmp_1) != get_scale(&value_1)) {
             scale = scale_equalize(&tmp_1, &value_1);
         }
-        int err = -1;
-        *result = bit_add(&tmp_1, &value_1, &err);
+        s21_sub(value_1, value_2, result);
         if (!s21_is_greater(value_1, value_2)) {
             set_bit(result, 127, 1);
         }

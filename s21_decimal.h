@@ -8,7 +8,7 @@
 #define s21_convert_error  1
 
 typedef struct {
- int bits[4];
+ unsigned int  bits[4];
 } s21_decimal;
 
 typedef union {
