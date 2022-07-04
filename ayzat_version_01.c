@@ -3,7 +3,6 @@
 #include <math.h>
 #include "s21_decimal.h"
 
-
 void print01(int i, int szf) {
     while (szf--) {
         printf("%d", (i >> szf) & 1 );
