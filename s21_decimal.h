@@ -8,7 +8,7 @@
 #define s21_convert_error  1
 
 typedef struct {
- unsigned int bits[4];
+ int bits[4];
 } s21_decimal;
 
 typedef union {
@@ -17,10 +17,10 @@ typedef union {
 }bitsun;
 
 typedef enum{
-    NORMAL_VALUE,
-    INFINITY,
-    NEGATIVE_INFINITY,
-    NAN
+  S21_NORMAL_VALUE,
+  S21_INFINITY,
+  S21_NEGATIVE_INFINITY,
+  S21_NAN
 }value_type;
 
 int get_scale(const s21_decimal *varPtr);

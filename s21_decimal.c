@@ -114,7 +114,7 @@ int s21_mul(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
         sign_result = 0;
     }
     int last_bit_1 = last_bit(value_1);
-    s21_decimal tmpRes = {0, 0, 0, 0};
+    s21_decimal tmpRes = {{0, 0, 0, 0}};
     int err = 0;
     for (int i = 0; i <= last_bit_1; i++) {
         init_struct(&tmpRes);
@@ -138,10 +138,10 @@ int s21_mul(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
         }
         while(err && (get_scale(result) <= 28) &&  (get_scale(result) >= 0)) {
             if (err && (get_scale(result) <= 28) && (get_scale(result) >= 0)) {
-                s21_decimal ten = {10, 0, 0, 0};
-                s21_decimal zero = {0, 0, 0, 0};
+                s21_decimal ten = {{10, 0, 0, 0}};
+                s21_decimal zero = {{0, 0, 0, 0}};
 
-                s21_decimal tmp = {0, 0, 0, 0};
+                s21_decimal tmp = {{0, 0, 0, 0}};
                 tmp = division_without_scale(*big, ten);
                 if (is_equal_b(tmp, zero) != 0) { // tmp не полностью обрезался
                     copy_bits(tmp, big);
@@ -152,7 +152,9 @@ int s21_mul(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
                 set_scale(big, bigger_scale - 1);
             }
         }
+
     }
+    set_sign(result, sign_result);
     return err;
 }
 
@@ -169,9 +171,9 @@ int s21_div(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     tmp = div_only_bits(value_1, value_2, &remainder);
     copy_bits(tmp, result);
 
-    s21_decimal border = {-1, -1, -1, 0};
-    s21_decimal  ten = {10, 0, 0, 0};
-    s21_decimal zero = {0, 0, 0, 0};
+    s21_decimal border = {{-1, -1, -1, 0}};
+    s21_decimal  ten = {{10, 0, 0, 0}};
+    s21_decimal zero = {{0, 0, 0, 0}};
     set_scale(&border, 1);
     int insideScale = 0;
     if (s21_is_equal(value_2, zero)) res = 3;
@@ -179,7 +181,7 @@ int s21_div(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
         if (s21_is_less(*result, border) == FALSE) {
             break;
         }
-        s21_decimal tmp1 = {0, 0, 0, 0};
+        s21_decimal tmp1 = {{0, 0, 0, 0}};
         s21_mul(remainder, ten, &tmp1);
         remainder = tmp1;
         clear_bits(&tmp1);
@@ -214,11 +216,11 @@ int s21_mod(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     s21_decimal tmp;
     s21_decimal tmp1;
     int res = 0;
-    int div = 0, mul = 0, trun = 0, sub = 0;
+    int div = 0, mul = 0, sub = 0;
     init_struct(&tmp);
     init_struct(&tmp1);
     div = s21_div(value_1, value_2, &tmp);
-    trun = s21_truncate(tmp, &tmp1);
+    s21_truncate(tmp, &tmp1);
     tmp = tmp1;
     clear_bits(&tmp1);
     mul = s21_mul(tmp, value_2, &tmp1);
@@ -428,10 +430,10 @@ dst->bits[0] = dst->bits[1] = dst->bits[2] = dst->bits[3] = 0;
 
 
 int s21_truncate(s21_decimal value, s21_decimal *result) {
-    s21_decimal ten = {10, 0, 0, 0};
-    s21_decimal res = {0, 0, 0, 0};
-    s21_decimal tmp = {0, 0, 0, 0};
-    s21_decimal zero = {0, 0, 0, 0};
+    s21_decimal ten = {{10, 0, 0, 0}};
+    // s21_decimal res = {{0, 0, 0, 0}};
+    s21_decimal tmp = {{0, 0, 0, 0}};
+    s21_decimal zero = {{0, 0, 0, 0}};
     int sign = get_sign(&value);
     int scale = get_scale(&value);
     int solution = 0;
@@ -461,7 +463,7 @@ int s21_truncate(s21_decimal value, s21_decimal *result) {
 //********************************************************************************************************//
 
 s21_decimal bit_add(s21_decimal *a, s21_decimal *b, int *error_code) {
-    s21_decimal result = {0 ,0, 0, 0};
+    s21_decimal result = {{0 ,0, 0, 0}};
     size_t buffer = 0;
     int flag = 0;
     for (int i = 0; i < 96; i++) {
@@ -557,12 +559,12 @@ void set_scale(s21_decimal *varPtr, int scale) {
  */
 int offset_left(s21_decimal *num_ptr, int value_offset) { // Смещение влево не затрагивая 31 и 63 бит
 //    value_type type;
-    int res = NORMAL_VALUE;
+    int res = S21_NORMAL_VALUE;
     int lastbit = last_bit(*num_ptr);
     if (lastbit + value_offset > 95) {
-        res = INFINITY;
+        res = S21_INFINITY;
     }
-    if (res != INFINITY) {
+    if (res != S21_INFINITY) {
         for (int i = 0; i < value_offset; i++) {
             int value_31bit = get_bit(*num_ptr, 31);
             int value_63bit = get_bit(*num_ptr, 63);
@@ -608,9 +610,9 @@ int zero_check(s21_decimal num1, s21_decimal num2) {
 int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
     s21_decimal *big = NULL;
     s21_decimal  *small = NULL;
-    int process = 1;
+    // int process = 1;
     if (get_scale(number1) == get_scale(number2)) {
-        process = 0;
+        // process = 0;
     } else if (get_scale(number1) > get_scale(number2)) {
         big = number1;
         small = number2;
@@ -646,10 +648,10 @@ int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
         }
         if (err) {
             // деление большего скейла на 10
-            s21_decimal ten = {10, 0, 0, 0};
-            s21_decimal zero = {0, 0, 0, 0};
+            s21_decimal ten = {{10, 0, 0, 0}};
+            s21_decimal zero = {{0, 0, 0, 0}};
 
-            s21_decimal tmp = {0, 0, 0, 0};
+            s21_decimal tmp = {{0, 0, 0, 0}};
             tmp = division_without_scale(*big, ten);
             if (is_equal_b(tmp, zero) != 0) { // tmp не полностью обрезался
                 copy_bits(tmp, big);
@@ -714,10 +716,10 @@ int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
 //        }
 //        if (err) {
 //            // деление большего скейла на 10
-//            s21_decimal ten = {10, 0, 0, 0};
-//            s21_decimal zero = {0, 0, 0, 0};
+//            s21_decimal ten = {{10, 0, 0, 0}};
+//            s21_decimal zero = {{0, 0, 0, 0}};
 //
-//            s21_decimal tmp12 = {0, 0, 0, 0};
+//            s21_decimal tmp12 = {{0, 0, 0, 0}};
 //            tmp12 = division_without_scale(*big, ten);
 //            if (is_equal_b(tmp12, zero) != 0) { // tmp не полностью обрезался
 //                copy_bits(tmp12, small);
@@ -737,7 +739,7 @@ int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
 void convert_to_addcode(s21_decimal *number_1) {
     s21_decimal res;
     int err = -1;
-    s21_decimal add = {1, 0, 0, 0};
+    s21_decimal add = {{1, 0, 0, 0}};
     number_1->bits[0] = ~number_1->bits[0];
     number_1->bits[1] = ~number_1->bits[1];
     number_1->bits[2] = ~number_1->bits[2];
@@ -763,12 +765,12 @@ void copy_bits(s21_decimal src, s21_decimal *dest) {
     dest->bits[2] = src.bits[2];
 }
 s21_decimal division_without_scale(s21_decimal num1, s21_decimal num2) {
-    s21_decimal result1 = { 0, 0, 0, 0};
-    s21_decimal result = { 0, 0, 0, 0};
-    s21_decimal sub = {0, 0, 0, 0};
-    s21_decimal tmp = {0, 0, 0, 0};
-    s21_decimal one = {1, 0, 0, 0};
-    s21_decimal null = {0, 0, 0, 0};
+    s21_decimal result1 = {{ 0, 0, 0, 0}};
+    s21_decimal result = {{ 0, 0, 0, 0}};
+    s21_decimal sub = {{0, 0, 0, 0}};
+    s21_decimal tmp = {{0, 0, 0, 0}};
+    s21_decimal one = {{1, 0, 0, 0}};
+    s21_decimal null = {{0, 0, 0, 0}};
     s21_decimal div_num2 = num2;
     convert_to_addcode(&num2);
 
@@ -898,11 +900,11 @@ void check_scale(s21_decimal *value_1, s21_decimal *value_2) {
 s21_decimal div_only_bits(s21_decimal number_1, s21_decimal number_2,
                           s21_decimal *buf) {
     init_struct(buf);
-    s21_decimal res = {0, 0, 0, 0};
+    s21_decimal res = {{0, 0, 0, 0}};
     for (int i = last_bit(number_1); i >= 0; i--) {
         if (get_bit(number_1, i)) set_bit(buf, 0, 1);
         if (s21_is_greater_or_equal(*buf, number_2) == TRUE) {
-            s21_decimal tmp1 = {0, 0, 0, 0};
+            s21_decimal tmp1 = {{0, 0, 0, 0}};
             s21_sub(*buf, number_2, &tmp1);
             *buf = tmp1;
             if (i != 0) offset_left(buf, 1);
