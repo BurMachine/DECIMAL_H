@@ -2,11 +2,12 @@
 #define SRC_S21_DECIMAL_H_*/
 #ifndef _S21_DECIMAL_H_
 #define _S21_DECIMAL_H_
-#define TRUE  1
-#define FALSE  0
+//#define TRUE  1
+//#define FALSE  0
 #define s21_ok 0
 #define s21_convert_error  1
 
+#include<stdbool.h>
 typedef struct {
     unsigned int bits[4];
 } s21_decimal;
@@ -18,9 +19,9 @@ typedef union {
 
 typedef enum{
     S21_NORMAL_VALUE,
-    S21_INFINITY,
-    S21_NEGATIVE_INFINITY,
-    S21_NAN
+//    S21_INFINITY,
+//    S21_NEGATIVE_INFINITY,
+//    S21_NAN
 }value_type;
 
 static const char *const binary_powers_of_ten[29] = {
@@ -84,6 +85,43 @@ static const char *const binary_powers_of_ten[29] = {
         "001000000100111111001110010111100011111000100101000000100110000100010000000000000000000000000000",
 };
 
+//''''''''''''''''''''''''''''
+typedef enum {
+    D_START_EXP = 16,  // Beginning of the Exponent Bits
+    D_END_EXP = 23,    // End of the Exponent Bits
+    D_MAX_EXP_VAL = 28,
+    D_SIGN = 31,  // Sign Bits
+} s21_decimal_const;
+
+typedef enum {
+    ARITHMETIC_OK = 0,
+    S21_INFINITY = 1,
+    S21_NEGATIVE_INFINITY = 2,
+    S21_NAN = 3
+} arithmetic_result;
+
+typedef enum {
+    POS = 0,
+    NEG = 1
+} arithmetic_consts;
+
+typedef enum {
+    FALSE = 0,
+    TRUE = 1,
+} comparison_result;
+
+typedef enum {
+    CONVERTATION_OK = 0,
+    CONVERTATION_ERROR = 1
+} convertation_result;
+
+#define IS_SET(X, POS) ((X >> POS) & 1U)
+#define ADD_BIT(X, POS) ((X) |= (1U << (POS)))
+#define SET_BIT(X, BIT, POS) (X |= (BIT << POS))
+#define INIT_ZERO(X) (X &= (0U << 32))
+#define ZERO_BIT(X, POS) (X &= ~(1UL << POS));
+//'''''''''''''''''''''''''''''
+
 int get_scale(const s21_decimal *varPtr);
 void set_sign(s21_decimal *a, int sign_value);
 int get_sign(const s21_decimal *a);
@@ -136,5 +174,45 @@ int s21_is_less_or_equal(s21_decimal value_1, s21_decimal value_2);
 int s21_truncate(s21_decimal value, s21_decimal *result);
 int s21_negate(s21_decimal value, s21_decimal *result);
 int s21_floor(s21_decimal value, s21_decimal *result);
+
+
+
+
+
+
+void handle_exponent_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result, int *code);
+int s21_normalize(s21_decimal *value_1, s21_decimal *value_2);
+s21_decimal binary_subtraction(s21_decimal value_1, s21_decimal value_2, int *err);
+s21_decimal binary_addition(s21_decimal value_1, s21_decimal value_2, int *err);
+s21_decimal bit_and(s21_decimal a, s21_decimal b);
+s21_decimal bit_xor(s21_decimal a, s21_decimal b);
+s21_decimal bit_lxor(s21_decimal a, s21_decimal b);
+s21_decimal bit_land(s21_decimal a, s21_decimal b);
+s21_decimal bit_not(s21_decimal a);
+void shiftr(s21_decimal *a);
+int lshiftl(s21_decimal *a);
+int shiftl(s21_decimal *a);
+
+void set_exponent(s21_decimal *decimal, int new_exponent);
+int get_exponent(s21_decimal decimal);
+
+void s21_normalize_decimal_pair(s21_decimal *a, s21_decimal *b, int *overflow);
+s21_decimal binary_multiplication(s21_decimal value_1, s21_decimal value_2, int *err);
+
+int eq_zero(s21_decimal value);
+int eq_zerol(s21_decimal value);
+
+void s21_bank_rounding(s21_decimal *dec, int times);
+int bank_rounding(int n);
+
+int s21_int_mod(s21_decimal dividend, s21_decimal divisor, s21_decimal *result);
+s21_decimal s21_integer_mod_private(s21_decimal dividend, s21_decimal divisor);
+s21_decimal s21_integer_div_private(s21_decimal dividend, s21_decimal divisor, s21_decimal *result);
+void handle_exponent_div(s21_decimal value_1, s21_decimal value_2, s21_decimal *result, int *code);
+int s21_int_div(s21_decimal dividend, s21_decimal divisor, s21_decimal *result);
+bool s21_is_less_positive(s21_decimal a, s21_decimal b);
+bool s21_is_less_basic(s21_decimal a, s21_decimal b);
+
+
 #endif // _S21_DECIMAL_H_
 //#endif // SRC_S21_DECIMAL_H_
