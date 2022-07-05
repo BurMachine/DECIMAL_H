@@ -14,6 +14,8 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     if (!get_sign(&value_1) && !get_sign(&value_2)) {
         if (get_scale(&value_1) != get_scale(&value_2)) {
             scale = scale_equalize(&value_1, &value_2);
+        } else {
+            scale = get_scale(&value_1);
         }
 
         *result = bit_add(&value_1, &value_2, &err);
@@ -29,7 +31,7 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
             scale = scale_equalize(&tmp_1, &value_2);
         }
         s21_sub(value_2, value_1, result);
-        if (s21_is_greater(value_1, value_2)) {
+        if (s21_is_greater(value_1, value_2) && !s21_is_equal(value_1, value_2)) {
             set_bit(result, 127, 1);
         }
     } else if (!get_sign(&value_1) && get_sign(&value_2)) {
@@ -60,6 +62,10 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     }
     set_scale(result, scale);
 //    scale_equalize(&value_1, &value_2);
+//    if (solution == 1) {
+//        s21_decimal zero = {{0, 0, 0, 0}};
+//        copy_bits(zero, result);
+//    }
     return solution;
 }
 
@@ -67,6 +73,7 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
 int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     int a = 0;
     int result_sign;
+    int flag = 0;
     if (get_sign(&value_1) != get_sign(&value_2)) { // разные знаки => ++ --
         result_sign = 0;
         if (get_sign(&value_1)) result_sign = 1;
@@ -75,6 +82,11 @@ int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
         set_sign(&value_2, 0);
         a = s21_add(value_1, value_2, result);
         set_sign(result, result_sign);
+        if (result_sign) {
+            flag = 1;
+        } else {
+            flag = 2;
+        }
     } else { // знаки одинаковые => +- or -+
         if (s21_is_equal(value_1, value_2)) {
             // нужно занулить result
@@ -99,7 +111,12 @@ int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
             set_sign(result, result_sign);
         }
     }
-    return  a;
+    if (flag == 1 && a != 0) {
+        a = 2;
+    } else {
+        a = 1;
+    }
+        return  a;
 }
 
 
@@ -120,24 +137,22 @@ int s21_mul(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
             tmpRes = value_2;
             offset_left(&tmpRes, i);
             *result = bit_add(result, &tmpRes, &err);
+            if (err != 0) break;
         }
     }
     int scale_res = get_scale(&value_1) + get_scale(&value_2);
     set_scale(result, scale_res);
 
 
-    if (err || (get_scale(result) > 28 || get_scale(result)
-
-
-                                          < 0)) {
+    if (err || scale_res > 28 || scale_res < 0) {
         s21_decimal *big;
         if (is_greater(value_1, value_2)) {
             big = &value_1;
         } else {
             big = &value_2;
         }
-        while(err && (get_scale(result) <= 28) &&  (get_scale(result) >= 0)) {
-            if (err && (get_scale(result) <= 28) && (get_scale(result) >= 0)) {
+        while(err && (scale_res <= 28) &&  (scale_res >= 0)) {
+            if (err && (scale_res <= 28) && (scale_res >= 0)) {
                 s21_decimal ten = {{10, 0, 0, 0}};
                 s21_decimal zero = {{0, 0, 0, 0}};
 
@@ -150,11 +165,15 @@ int s21_mul(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
                 }
                 int bigger_scale = get_scale(big);
                 set_scale(big, bigger_scale - 1);
+                scale_res--;
             }
         }
-
     }
     set_sign(result, sign_result);
+    s21_decimal zero = {{0, 0, 0, 0}};
+    if (scale_res > 28 || scale_res < 0) {
+        copy_bits(zero, result);
+    }
     return err;
 }
 
@@ -176,39 +195,42 @@ int s21_div(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     s21_decimal zero = {{0, 0, 0, 0}};
     set_scale(&border, 1);
     int insideScale = 0;
-    if (s21_is_equal(value_2, zero)) res = 3;
-    for (; insideScale <= 27 && s21_is_equal(remainder, zero) == FALSE;)  {
-        if (s21_is_less(*result, border) == FALSE) {
-            break;
+    if (s21_is_equal(value_2, zero)){
+        copy_bits(zero, result);
+        res = 3;
+    } else {
+        for (; insideScale <= 27 && s21_is_equal(remainder, zero) == FALSE;) {
+            if (s21_is_less(*result, border) == FALSE) {
+                break;
+            }
+            s21_decimal tmp1 = {{0, 0, 0, 0}};
+            s21_mul(remainder, ten, &tmp1);
+            remainder = tmp1;
+            clear_bits(&tmp1);
+            tmp = div_only_bits(remainder, value_2, &tmp1);
+            remainder = tmp1;
+            clear_bits(&tmp1);
+            s21_mul(*result, ten, &tmp1);
+            *result = tmp1;
+            clear_bits(&tmp1);
+            s21_add(*result, tmp, &tmp1);
+            *result = tmp1;
+            insideScale++;
         }
-        s21_decimal tmp1 = {{0, 0, 0, 0}};
-        s21_mul(remainder, ten, &tmp1);
-        remainder = tmp1;
-        clear_bits(&tmp1);
-        tmp = div_only_bits(remainder, value_2, &tmp1);
-        remainder = tmp1;
-        clear_bits(&tmp1);
-        s21_mul(*result, ten, &tmp1);
-        *result = tmp1;
-        clear_bits(&tmp1);
-        s21_add(*result, tmp, &tmp1);
-        *result = tmp1;
-        insideScale++;
-    }
-    s21_decimal trash;
-    int endScale = beginScale + insideScale;
-    for (; endScale > 28;) {
-        *result = div_only_bits(*result, ten, &trash);
-        endScale--;
-    }
-    for (; endScale < 0;) {
-        s21_mul(*result, ten, result);
-        endScale++;
-    }
+        s21_decimal trash;
+        int endScale = beginScale + insideScale;
+        for (; endScale > 28;) {
+            *result = div_only_bits(*result, ten, &trash);
+            endScale--;
+        }
+        for (; endScale < 0;) {
+            s21_mul(*result, ten, result);
+            endScale++;
+        }
 
-    set_scale(result, endScale);
-    set_sign(result, Sign);
-
+        set_scale(result, endScale);
+        set_sign(result, Sign);
+    }
     return res;
 }
 
@@ -249,7 +271,7 @@ int s21_mod(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
 int s21_is_greater(s21_decimal value_1, s21_decimal value_2) {
     int is_greater = -1;
 
-    int negative = 0;
+    int negative = -1;
     int sign_value_1 = get_sign(&value_1);
     int sign_value_2 = get_sign(&value_2);
 
@@ -646,26 +668,24 @@ int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
             offset_left(&tmp1, 1);
             offset_left(&tmp2, 3);
             tmp = bit_add(&tmp1, &tmp2, &err);
-            if (get_bit(tmp, 95)) err = 1;
+//            if (get_bit(tmp, 95)) err = 1;
             if (err != 1) {
                 copy_bits(tmp, small);
                 set_scale(small, small_scale + 1);
             }
-        }
-        if (err) {
+        } else {
             // деление большего скейла на 10
             s21_decimal ten = {{10, 0, 0, 0}};
+            s21_decimal remainder;
             s21_decimal zero = {{0, 0, 0, 0}};
 
             s21_decimal tmp = {{0, 0, 0, 0}};
-            tmp = division_without_scale(*big, ten);
+//            tmp = division_without_scale(*big, ten);
+            tmp = div_only_bits(*big, ten, &remainder);
             if (is_equal_b(tmp, zero) != 0) { // tmp не полностью обрезался
                 copy_bits(tmp, big);
-            }
-
-
-            if (is_equal_b(tmp, zero) == 0) { // обрезался, нужны идеи как быть в этой ситуации(мб остаток от деления ставить)
-                copy_bits(tmp, big);
+            } else { // обрезался, нужны идеи как быть в этой ситуации(мб остаток от деления ставить)
+                copy_bits(remainder, big);
             }
             bigger_scale = get_scale(big);
             set_scale(big, bigger_scale - 1);
@@ -809,8 +829,9 @@ s21_decimal division_without_scale(s21_decimal num1, s21_decimal num2) {
 
         sub = tmp;
         int counter = 0;
+        int err = -1;
         while (is_greater_or_equal(sub, null) != 0 && sub.bits[0] > 0) {
-            sub = bit_add(&sub, &num2, 0);
+            sub = bit_add(&sub, &num2, &err);
             if (sub.bits[0]) result1 = bit_add(&result1, &one, 0);
             counter++;
         }
@@ -823,7 +844,7 @@ s21_decimal division_without_scale(s21_decimal num1, s21_decimal num2) {
         }
         flag_ones = 0;
         flag_null = 0;
-        tmp = bit_add(&tmp, &num2, 0);
+        tmp = bit_add(&tmp, &num2, &err);
         for(int j = last_bit(result1); j >= 0; j--) {
             if (flag_offset_result == 0) {
                 set_bit(&result, 0, get_bit(result1, j));
