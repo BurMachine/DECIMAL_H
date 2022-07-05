@@ -82,12 +82,18 @@ int main() {
     // print0001(c);
     // printf("\n");
     // printf("%d\n%d", get_scale(&num1), get_scale(&num2));
- s21_decimal f1 = {132, 0, 0, 0};
- set_scale(&f1, 1);
- s21_decimal f2;
- s21_floor(f1, &f2);
-    print0001(f1);
+//  s21_decimal f1 = {132, 0, 0, 0};
+//  set_scale(&f1, 1);
+//  s21_decimal f2;
+//  s21_floor(f1, &f2);
+    s21_decimal x = {{15008, 0, 0, 0b00000000000000000000000000000000}};
+   set_scale(&x, 3);
+   s21_decimal z = {{0, 0, 0, 0b00000000000000000000000000000000}};
+   s21_floor(x, &z);
+   char res1[1000], res2[1000] = "15 0 0 0";
+   snprintf(res1, sizeof(char)*1000, "%u %u %u %u", z.bits[0], z.bits[1], z.bits[2], z.bits[3]);
+    print0001(x);
     printf("\n");
-    print0001(f2);
+    printf("%d\n", z);
     printf("\n");
 }

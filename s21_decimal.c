@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-
+#include <limits.h>
 
 int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     int solution = 0;
@@ -341,7 +341,7 @@ int s21_is_less_or_equal(s21_decimal value_1, s21_decimal value_2) {
 
 
 int s21_from_int_to_decimal(int src, s21_decimal *dst) {
-    char result = TRUE;
+    char result = FALSE;
     if (dst) {
         dst->bits[0] = dst->bits[1] = dst->bits[2] = dst->bits[3] = 0;
         if (src < 0) {
@@ -350,20 +350,27 @@ int s21_from_int_to_decimal(int src, s21_decimal *dst) {
         }
         dst->bits[0] = src;
     } else {
-        result = FALSE;
+        result = TRUE;
     }
     return result;
 }
 int s21_from_decimal_to_int(s21_decimal src, int *dst) {
-    int result = 1;
-    *dst = src.bits[0];
-    if (get_sign(&src)) {
-        *dst *= -1;
-    } else {
-        *dst *= 1;
-    }
-    *dst /= (int)pow(10, get_scale(&src));
-    result = 0;
+     s21_decimal truncated = {0};
+     int result = s21_ok;
+    int code = s21_truncate(src, &truncated);
+    int sign = get_sign(&src);
+    if (!dst || code == s21_convert_error)
+        result = s21_convert_error;
+    if (get_bit(truncated, 31) || truncated.bits[1] || truncated.bits[2])
+        result = s21_convert_error;
+    int tmp = 0;
+    for (int i = 0; i < 31; i++)
+        tmp += pow(2, i) * get_bit(truncated, i);
+    if (tmp == INT_MIN && sign)
+        result = s21_convert_error;
+    if (sign)
+        tmp = -tmp;
+    *dst = tmp;
     return result;
 }
 int getFloatSign(float *src) {
@@ -375,19 +382,21 @@ int getFloatExp(float *src) {
 }
 
 int s21_from_decimal_to_float(s21_decimal src, float *dst) {
-    char result = FALSE;
-    int sign = get_sign(&src);
-    if (!dst)
-        result = TRUE;
-    int exp = get_scale(&src);
+     int result = s21_ok;
+      int sign = get_sign(&src);
+    if (!dst) {
+    result = s21_convert_error;
+    } else {
+    int scale = get_scale(&src);
     long double tmp = 0;
     for (int i = 0; i < 96; i++)
         tmp += pow(2, i) * get_bit(src, i);
-    while (exp--)
+    while (scale--)
         tmp /= 10.0;
     if (sign)
         tmp *= -1.0;
     *dst = tmp;
+    }
     return result;
 }
 
@@ -407,10 +416,7 @@ int s21_from_float_to_decimal(float src, s21_decimal *dst) {
         for (; off < 28 && (int)temp / (int)pow(2, 21) == 0; temp *= 10, off++) {
         }
         temp = round(temp);
-        if (off <= 28 && (exp
-
-
-> -94 && exp < 96)) {
+        if (off <= 28 && (exp > -94 && exp < 96)) {
             bitsun mant;
             temp = (float)temp;
             for (; fmod(temp, 10) == 0 && off > 0; off--, temp /= 10) {
@@ -421,7 +427,7 @@ int s21_from_float_to_decimal(float src, s21_decimal *dst) {
             for (int i = exp - 1, j = 22; j >= 0; i--, j--)
                 if ((mant.ui & (1 << j)) != 0) dst->bits[i / 32] |= 1 << i % 32;
             dst->bits[3] = (sign << 31) | (off << 16);
-            result = TRUE;
+            result = s21_ok;
         }
     }
     return result;
@@ -952,18 +958,14 @@ int s21_floor(s21_decimal value, s21_decimal *result) {
      int sign = get_sign(&value);
     memset(result, 0, sizeof(*result));
     int never_error = 0;
-
   s21_decimal one = get_power_of_ten(0);
   s21_decimal zero = {0};
   s21_decimal mod_res = {0};
-
   s21_mod(value, one, &mod_res);
   s21_truncate(value, result);
-
   if (get_sign(&value) && s21_is_not_equal(value, zero)  && s21_is_not_equal(mod_res, zero)) {
     *result = bit_add(result, &one, &never_error);
   }
-
     set_sign(result, sign);
  return s21_ok;
 }
