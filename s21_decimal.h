@@ -1,3 +1,4 @@
+
 /*#ifndef SRC_S21_DECIMAL_H_
 #define SRC_S21_DECIMAL_H_*/
 #ifndef _S21_DECIMAL_H_
@@ -6,6 +7,11 @@
 //#define FALSE  0
 #define s21_ok 0
 #define s21_convert_error  1
+
+#define SIGNMASK 0x80000000
+#define OVERFLOW_INT 0x7FFFFFFF
+#define MINUS_INFINITY 0xFF800000
+#define PLUS_INFINITY 0x7F800000
 
 #include<stdbool.h>
 typedef struct {
@@ -92,6 +98,25 @@ typedef enum {
     D_MAX_EXP_VAL = 28,
     D_SIGN = 31,  // Sign Bits
 } s21_decimal_const;
+
+typedef enum {
+    s21_NORMAL_VALUE = 0,
+    s21_INFINITY = 1,
+    s21_NEGATIVE_INFINITY = 2,
+    s21_NAN = 3
+} value_type_t;
+
+typedef union {
+    unsigned int ui;
+    float fl;
+} floatbits;
+
+typedef struct {
+    unsigned int bits[4];
+    value_type_t value_type;
+} s22_decimal;
+
+
 
 typedef enum {
     ARITHMETIC_OK = 0,
@@ -210,8 +235,40 @@ int s21_round(s21_decimal value, s21_decimal *result);
 
 
 
-
-
+void shift(s22_decimal *a);
+void bit_on(s22_decimal *a, int position);
+void bit_off(s22_decimal *a, int position);
+int no_bits(s22_decimal a);
+int decbit(s22_decimal a, int position);
+void return_infinity(s22_decimal *a);
+char scale(s22_decimal a);
+void to_one_scale(s22_decimal *a, s22_decimal *b);
+s22_decimal minus(s22_decimal a, s22_decimal b);
+int sign_minus(s22_decimal a);
+int s21s22_is_equal(s22_decimal dec1, s22_decimal dec2);
+s22_decimal s21s22_sub(s22_decimal a, s22_decimal b);
+int s21s22_is_less(s22_decimal dec1, s22_decimal dec2);
+int is_greater_module(s22_decimal a, s22_decimal b);
+int s21s22_is_greater_or_equal(s22_decimal dec1, s22_decimal dec2);
+s22_decimal errors_s21mul(s22_decimal a, s22_decimal b);
+s22_decimal s21s22_mul(s22_decimal a, s22_decimal b);
+int len_of_digit(s22_decimal dig);
+s22_decimal add_only_scale(s22_decimal a, int scale);
+s22_decimal div_int(s22_decimal a, s22_decimal b, s22_decimal *buf);
+int float_errors(float src, s22_decimal *dst);
+char getbinexp(float src);
+int s21s22_from_float_to_decimal(float src, s22_decimal *dst);
+s22_decimal minus_scale(s22_decimal a);
+s22_decimal plus(s22_decimal a, s22_decimal b);
+s22_decimal s21s22_floor(s22_decimal a);
+int detect_minus_result(s22_decimal *a, s22_decimal *b);
+s22_decimal s21s22_truncate(s22_decimal a);
+s22_decimal s21s22_mod(s22_decimal a, s22_decimal b);
+s22_decimal not_a_number(void);
+s22_decimal s21s22_round(s22_decimal a);
+int last_bit1(s22_decimal a);
+s22_decimal plus_scale(s22_decimal a);
+s22_decimal s21s22_div(s22_decimal a, s22_decimal b);
 
 #endif // _S21_DECIMAL_H_
 //#endif // SRC_S21_DECIMAL_H_

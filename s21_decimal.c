@@ -1,4 +1,3 @@
-
 #include "s21_decimal.h"
 #include <stdio.h>
 #include <string.h>
@@ -92,29 +91,70 @@ int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
 
 
 
-int s21_mod(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
-    s21_decimal tmp;
-    s21_decimal tmp1;
-    int res = 0;
-    int div = 0, mul = 0, sub = 0;
-    init_struct(&tmp);
-    init_struct(&tmp1);
-    div = s21_div(value_1, value_2, &tmp);
-    s21_truncate(tmp, &tmp1);
-    tmp = tmp1;
-    clear_bits(&tmp1);
-    mul = s21_mul(tmp, value_2, &tmp1);
-    tmp = tmp1;
-    sub = s21_sub(value_1, tmp, result);
-    if (div != 0) {
-        res = div;
-    } else if (mul != 0) {
-        res = mul;
-    } else if (sub != 0) {
-//        res = sub;
-    } else {}
+//int s21_mod(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
+//    s21_decimal tmp;
+//    s21_decimal tmp1;
+//    int res = 0;
+//    int div = 0, mul = 0, sub = 0;
+//    init_struct(&tmp);
+//    init_struct(&tmp1);
+//    div = s21_div(value_1, value_2, &tmp);
+//    s21_truncate(tmp, &tmp1);
+//    tmp = tmp1;
+//    clear_bits(&tmp1);
+//    mul = s21_mul(tmp, value_2, &tmp1);
+//    tmp = tmp1;
+//    sub = s21_sub(value_1, tmp, result);
+//    if (div != 0) {
+//        res = div;
+//    } else if (mul != 0) {
+//        res = mul;
+//    } else if (sub != 0) {
+////        res = sub;
+//    } else {}
+//
+//    return res;
+//}
 
-    return res;
+int s21_mod(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
+//    memset(result, 0, sizeof(*result));
+//
+//    if (eq_zero(value_2))
+//        return S21_NAN;
+//
+//    int code = 0;
+//
+//    int exp = max(get_exponent(value_1), get_exponent(value_2));
+//    (void) s21_normalize(&value_1, &value_2);
+//
+//    code = s21_int_mod(value_1, value_2, result);
+//    set_exponent(result, exp);
+//
+//    return code;
+    int a = 0;
+    s22_decimal num = {{0, 0, 0, 0}, 0};
+    s22_decimal num2 = {{0, 0, 0, 0}, 0};
+    s22_decimal res = {{0, 0, 0, 0}, 0};
+    num.bits[0] = value_1.bits[0];
+    num.bits[1] = value_1.bits[1];
+    num.bits[2] = value_1.bits[2];
+    num.bits[3] = value_1.bits[3];
+    num2.bits[0] = value_2.bits[0];
+    num2.bits[1] = value_2.bits[1];
+    num2.bits[2] = value_2.bits[2];
+    num2.bits[3] = value_2.bits[3];
+    res = s21s22_mod(num, num2);
+    result->bits[0] = res.bits[0];
+    result->bits[1] = res.bits[1];
+    result->bits[2] = res.bits[2];
+    result->bits[3] = res.bits[3];
+    if (res.value_type != 0) {
+        if (res.value_type == 1) a = 1;
+        if (res.value_type == 1) a = 2;
+        if (res.value_type == 1) a = 3;
+    }
+    return a;
+
 }
 
 
@@ -345,6 +385,29 @@ int s21_mul(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
         copy_bits(zero, result);
     }
     return err;
+//    int a = 0;
+//    s22_decimal num = {{0, 0, 0, 0}, 0};
+//    s22_decimal num2 = {{0, 0, 0, 0}, 0};
+//    s22_decimal res = {{0, 0, 0, 0}, 0};
+//    num.bits[0] = value_1.bits[0];
+//    num.bits[1] = value_1.bits[1];
+//    num.bits[2] = value_1.bits[2];
+//    num.bits[3] = value_1.bits[3];
+//    num2.bits[0] = value_2.bits[0];
+//    num2.bits[1] = value_2.bits[1];
+//    num2.bits[2] = value_2.bits[2];
+//    num2.bits[3] = value_2.bits[3];
+//    res = s21s22_mul(num, num2);
+//    result->bits[0] = res.bits[0];
+//    result->bits[1] = res.bits[1];
+//    result->bits[2] = res.bits[2];
+//    result->bits[3] = res.bits[3];
+//    if (res.value_type != 0) {
+//        if (res.value_type == 1) a = 1;
+//        if (res.value_type == 1) a = 2;
+//        if (res.value_type == 1) a = 3;
+//    }
+//    return a;
 }
 
 
@@ -368,8 +431,76 @@ int s21_div(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
         set_sign(result, 1);
 
     return code;
+//    int a = 0;
+//    s22_decimal num = {{0, 0, 0, 0}, 0};
+//    s22_decimal num2 = {{0, 0, 0, 0}, 0};
+//    s22_decimal res = {{0, 0, 0, 0}, 0};
+//    num.bits[0] = value_1.bits[0];
+//    num.bits[1] = value_1.bits[1];
+//    num.bits[2] = value_1.bits[2];
+//    num.bits[3] = value_1.bits[3];
+//    num2.bits[0] = value_2.bits[0];
+//    num2.bits[1] = value_2.bits[1];
+//    num2.bits[2] = value_2.bits[2];
+//    num2.bits[3] = value_2.bits[3];
+//    res = s21s22_div(num, num2);
+//    result->bits[0] = res.bits[0];
+//    result->bits[1] = res.bits[1];
+//    result->bits[2] = res.bits[2];
+//    result->bits[3] = res.bits[3];
+//    if (res.value_type != 0) {
+//        if (res.value_type == 1) a = 1;
+//        if (res.value_type == 1) a = 2;
+//        if (res.value_type == 1) a = 3;
+//    }
+//    return a;
 }
 
+s22_decimal s21s22_div(s22_decimal a, s22_decimal b) {
+    if (no_bits(b)) return not_a_number();
+    s22_decimal buf = {{0, 0, 0, 0}, 0};
+    s22_decimal res = {{0, 0, 0, 0}, 0};
+    res.value_type = a.value_type ?: b.value_type;
+    if (!res.value_type) {
+        char sca = scale(a), scb = scale(b);
+        int scres = 0, sign = 0;
+        sign = sign_minus(a) != sign_minus(b);
+        a.bits[3] = b.bits[3] = 0;
+        res = div_int(a, b, &buf);
+        s22_decimal compare = {{0, 0, 0, 0}, 0};
+        s22_decimal buf_tmp = {{0, 0, 0, buf.bits[3]}, 0};
+        while (s21s22_is_equal(buf, compare)) {
+            buf = plus_scale(buf);
+            res = plus_scale(res);
+            s22_decimal res_tmp = div_int(buf, b, &buf_tmp);
+            buf = buf_tmp;
+            buf.bits[3] = compare.bits[3];
+            res = plus(res, res_tmp);
+            buf_tmp = compare;
+            scres = scale(res);
+            if (!scb && (sca + scres) > 28) {
+                s22_decimal desyat = {{10, 0, 0, 0}, 0};
+                res = div_int(res, desyat, &buf_tmp);
+                scres--;
+                break;
+            }
+            if (scres > 27 && res.bits[2] & 0xE0000000) break;
+            if ((sca + scres - scb) >= 28) break;
+        }
+        scres = sca + scres - scb;
+        res.bits[3] = 0;
+        if (last_bit1(res) != -1) {
+            if (scres >= 0) {
+                res = add_only_scale(res, scres);
+            } else {
+                for (int i = scres; i < 0; i++) res = plus_scale(res);
+                res.bits[3] = 0;
+            }
+            if (sign) res.bits[3] ^= 0x80000000;
+        }
+    }
+    return res;
+}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                   СРАВНЕНИЯ                                                            //
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -572,25 +703,41 @@ int s21_from_float_to_decimal(float src, s21_decimal *dst) {
 
 
 int s21_truncate(s21_decimal value, s21_decimal *result) {
-    s21_decimal ten = {{10, 0, 0, 0}};
-    // s21_decimal res = {{0, 0, 0, 0}};
-    s21_decimal tmp = {{0, 0, 0, 0}};
-    s21_decimal zero = {{0, 0, 0, 0}};
-    int sign = get_sign(&value);
-    int scale = get_scale(&value);
-    int solution = 0;
-    if (!scale) {
-        *result = value;
-    } else {
-        for (int i = scale; i > 0; i--) {
-//            *result = division_without_scale(value, ten);
-            *result = div_only_bits(value, ten, &tmp);
-            value = *result;
-        }
-        if (s21_is_equal(*result, zero)) solution = 1;
+//    s21_decimal ten = {{10, 0, 0, 0}};
+//    // s21_decimal res = {{0, 0, 0, 0}};
+//    s21_decimal tmp = {{0, 0, 0, 0}};
+//    s21_decimal zero = {{0, 0, 0, 0}};
+//    int sign = get_sign(&value);
+//    int scale = get_scale(&value);
+//    int solution = 0;
+//    if (!scale) {
+//        *result = value;
+//    } else {
+//        for (int i = scale; i > 0; i--) {
+////            *result = division_without_scale(value, ten);
+//            *result = div_only_bits(value, ten, &tmp);
+//            value = *result;
+//        }
+//        if (s21_is_equal(*result, zero)) solution = 1;
+//    }
+//    if (sign && solution) set_sign(result, 1);
+//    return solution;
+    int a = 0;
+    s22_decimal num = {{0, 0, 0, 0}, 0};
+    s22_decimal res = {{0, 0, 0, 0}, 0};
+    num.bits[0] = value.bits[0];
+    num.bits[1] = value.bits[1];
+    num.bits[2] = value.bits[2];
+    num.bits[3] = value.bits[3];
+    res = s21s22_truncate(num);
+    result->bits[0] = res.bits[0];
+    result->bits[1] = res.bits[1];
+    result->bits[2] = res.bits[2];
+    result->bits[3] = res.bits[3];
+    if (res.value_type != 0) {
+        a = 1;
     }
-    if (sign && solution) set_sign(result, 1);
-    return solution;
+    return a;
 }
 
 //********************************************************************************************************//
@@ -1349,45 +1496,489 @@ void s21_bank_rounding(s21_decimal *dec, int times) {
 }
 
 int s21_floor(s21_decimal value, s21_decimal *result) {
-    int sign = get_sign(&value);
-    memset(result, 0, sizeof(*result));
-    int never_error = 0;
-
-    s21_decimal one = get_power_of_ten(0);
-    s21_decimal zero = {0};
-    s21_decimal mod_res = {0};
-
-    s21_mod(value, one, &mod_res);
-    s21_truncate(value, result);
-
-    if (get_sign(&value) && s21_is_not_equal(value, zero)  && s21_is_not_equal(mod_res, zero)) {
-        *result = bit_add(result, &one, &never_error);
+//    int sign = get_sign(&value);
+//    memset(result, 0, sizeof(*result));
+//    int never_error = 0;
+//
+//    s21_decimal one = get_power_of_ten(0);
+//    s21_decimal zero = {0};
+//    s21_decimal mod_res = {0};
+//
+//    s21_mod(value, one, &mod_res);
+//    s21_truncate(value, result);
+//
+//    if (get_sign(&value) && s21_is_not_equal(value, zero)  && s21_is_not_equal(mod_res, zero)) {
+//        *result = bit_add(result, &one, &never_error);
+//    }
+//
+//    set_sign(result, sign);
+//    return s21_ok;
+    int a = 0;
+    s22_decimal num = {{0, 0, 0, 0}, 0};
+    s22_decimal res = {{0, 0, 0, 0}, 0};
+    num.bits[0] = value.bits[0];
+    num.bits[1] = value.bits[1];
+    num.bits[2] = value.bits[2];
+    num.bits[3] = value.bits[3];
+    res = s21s22_floor(num);
+    result->bits[0] = res.bits[0];
+    result->bits[1] = res.bits[1];
+    result->bits[2] = res.bits[2];
+    result->bits[3] = res.bits[3];
+    if (res.value_type != 0) {
+        a = 1;
     }
-
-    set_sign(result, sign);
-    return s21_ok;
+    return a;
 }
+
+
 int s21_round(s21_decimal value, s21_decimal *result) {
-    memset(result, 0, sizeof(*result));
-    int never_error = 0;
-    int sign = get_sign(&value);
-    s21_decimal one = get_power_of_ten(0);
-    s21_decimal zeroDotFive = {0};
-    zeroDotFive.bits[0] = 5;
-    s21_decimal mod_res = {0};
-    set_exponent(&zeroDotFive, 1);
-
-    s21_mod(value, one, &mod_res);
-    set_sign(&mod_res, POS);
-
-    s21_truncate(value, result);
-
-    s21_normalize(&mod_res, &zeroDotFive);
-
-    if (s21_is_greater(mod_res, zeroDotFive) ||
-        s21_is_equal(mod_res, zeroDotFive)) {
-        *result = binary_addition(*result, one, &never_error);
+//    memset(result, 0, sizeof(*result));
+//    int never_error = 0;
+//    int sign = get_sign(&value);
+//    s21_decimal one = get_power_of_ten(0);
+//    s21_decimal zeroDotFive = {0};
+//    zeroDotFive.bits[0] = 5;
+//    s21_decimal mod_res = {0};
+//    set_exponent(&zeroDotFive, 1);
+//
+//    s21_mod(value, one, &mod_res);
+//    set_sign(&mod_res, POS);
+//
+//    s21_truncate(value, result);
+//
+//    s21_normalize(&mod_res, &zeroDotFive);
+//
+//    if (s21_is_greater(mod_res, zeroDotFive) ||
+//        s21_is_equal(mod_res, zeroDotFive)) {
+//        *result = binary_addition(*result, one, &never_error);
+//    }
+//    set_sign(result, sign);
+//    return s21_ok;
+    int a = 0;
+    s22_decimal num = {{0, 0, 0, 0}, 0};
+    s22_decimal res = {{0, 0, 0, 0}, 0};
+    num.bits[0] = value.bits[0];
+    num.bits[1] = value.bits[1];
+    num.bits[2] = value.bits[2];
+    num.bits[3] = value.bits[3];
+    res = s21s22_round(num);
+    result->bits[0] = res.bits[0];
+    result->bits[1] = res.bits[1];
+    result->bits[2] = res.bits[2];
+    result->bits[3] = res.bits[3];
+    if (res.value_type != 0) {
+        a = 1;
     }
-    set_sign(result, sign);
-    return s21_ok;
+    return a;
+}
+
+void shift(s22_decimal *a) {
+    int ch31 = (decbit(*a, 31));
+    int ch63 = (decbit(*a, 63));
+    a->bits[0] <<= 1;
+    a->bits[1] <<= 1;
+    a->bits[2] <<= 1;
+    if (ch31) a->bits[1] |= 1;
+    if (ch63) a->bits[2] |= 1;
+}
+
+void bit_on(s22_decimal *a, int position) {
+    unsigned int x = position / 32;
+    unsigned int y = position % 32;
+    if (x < 4)
+        a->bits[x] |= ((unsigned)1 << y);
+}
+
+void bit_off(s22_decimal *a, int position) {
+    a->bits[position / 32] &= ~(1 << position % 32);
+}
+
+int last_bit1(s22_decimal a) {
+    int result = -1;
+    for (int i = 95; i >= 0; i--) {
+        if (decbit(a, i)) {
+            result = i;
+            break;
+        }
+    }
+    return result;
+}
+
+int no_bits(s22_decimal a) {return (last_bit1(a) == -1);}
+
+int decbit(s22_decimal a, int position) {
+    unsigned int x = position / 32;
+    unsigned int y = position % 32;
+    int res = 0;
+    if (x < 4)
+        res = ((a.bits[x] & ((unsigned)1 << y)) != 0);
+    return res;
+}
+
+void return_infinity(s22_decimal *a) {
+    for (int i = 0; i < 4; i++) a->bits[i] &= 0;
+    a->value_type = 1;
+}
+
+char scale(s22_decimal a) { return (char)(a.bits[3] >> 16); }
+
+void to_one_scale(s22_decimal *a, s22_decimal *b) {
+    if (scale(*a) == scale(*b)) return;
+    s22_decimal *up = NULL, *low = NULL;
+    if (scale(*a) > scale(*b))
+        up = a, low = b;
+    else
+        up = b, low = a;
+    int up_error = 0;
+    while (scale(*up) > scale(*low)) {
+        if (!up_error) {
+            s22_decimal tmp = plus_scale(*low);
+            if (tmp.value_type)
+                up_error = 1;
+            else
+                *low = tmp;
+        } else {
+            *up = minus_scale(*up);
+        }
+    }
+}
+
+s22_decimal plus_scale(s22_decimal a) {
+    s22_decimal upscale = {{10, 0, 0, 0}, 0};
+    a = s21s22_mul(a, upscale);
+    if (a.value_type == 0) {
+        a.bits[3] += 0x10000;
+        if (scale(a) > 28) return_infinity(&a);
+    }
+    return a;
+}
+
+s22_decimal minus(s22_decimal a, s22_decimal b) {
+    s22_decimal result = {{0, 0, 0, a.bits[3]}, 0};
+    for (int i = 0; i <= 95; i++) {
+        if (decbit(a, i) && !decbit(b, i)) {
+            bit_on(&result, i);
+        } else if (!decbit(a, i) && decbit(b, i)) {
+            for (int j = i + 1; j <= 95; j++)
+                if (decbit(a, j)) {
+                    bit_off(&a, j);
+                    while (--j > i) bit_on(&a, j);
+                    bit_on(&result, i);
+                    break;
+                }
+        }
+    }
+    return result;
+}
+
+int sign_minus(s22_decimal a) { return a.bits[3] >> 31; }
+
+int s21s22_is_equal(s22_decimal dec1, s22_decimal dec2) {
+    int res = 0;
+    to_one_scale(&dec1, &dec2);
+    for (int i = 0; i <= 95 && !res; i++) {
+        if (dec1.bits[3] >> 31 == dec2.bits[3] >> 31) {
+            if (decbit(dec1, i) != decbit(dec2, i)) res = 1;
+        } else {
+            res = 1;
+        }
+    }
+    return res;
+}
+
+s22_decimal s21s22_add(s22_decimal a, s22_decimal b) {
+    s22_decimal result = {{0, 0, 0, 0}, 0};
+    result.value_type = a.value_type ?: b.value_type;
+    if (!result.value_type) {
+        to_one_scale(&a, &b);
+        if (sign_minus(a) == sign_minus(b)) {
+            result = plus(a, b);
+        } else {
+            if (is_greater_module(a, b))
+                result = minus(a, b);
+            else
+                result = minus(b, a);
+        }
+    }
+    return result;
+}
+
+s22_decimal s21s22_sub(s22_decimal a, s22_decimal b) {
+    s22_decimal result = (s22_decimal){0};
+    result.value_type = a.value_type ?: b.value_type;
+    if (!result.value_type && s21s22_is_equal(a, b)) {
+        b.bits[3] ^= SIGNMASK;
+        result = s21s22_add(a, b);
+    }
+    return result;
+}
+
+
+int s21s22_is_less(s22_decimal dec1, s22_decimal dec2) {
+    int res = 1;
+    to_one_scale(&dec1, &dec2);
+    for (int i = 95; i >= 0 && res; i--) {
+        if (!(dec1.bits[3] >> 31 & dec2.bits[3] >> 31)) {
+            if (dec1.bits[3] >> 31) {
+                res = 0;
+            } else if (dec2.bits[3] >> 31) {
+                break;
+            } else {
+                if (decbit(dec1, i) < decbit(dec2, i))
+                    res = 0;
+                else if (decbit(dec1, i) > decbit(dec2, i))
+                    break;
+            }
+        } else {
+            if (decbit(dec1, i) > decbit(dec2, i))
+                res = 0;
+            else if (decbit(dec1, i) < decbit(dec2, i))
+                break;
+        }
+    }
+    return res;
+}
+
+int is_greater_module(s22_decimal a, s22_decimal b) {
+    int res = 0;
+    to_one_scale(&a, &b);
+    for (int i = 95; i >= 0 && !res; i--) {
+        if (decbit(a, i) > decbit(b, i))
+            res = 1;
+        else if ((decbit(a, i)) < (decbit(b, i)))
+            break;
+    }
+    return res;
+}
+
+
+int s21s22_is_greater_or_equal(s22_decimal dec1, s22_decimal dec2) {
+    return !s21s22_is_less(dec1, dec2);
+}
+
+s22_decimal errors_s21mul(s22_decimal a, s22_decimal b) {
+    s22_decimal result = {{0, 0, 0, 0}, 0};
+    result.value_type = a.value_type > b.value_type ? a.value_type : b.value_type;
+    if (last_bit1(a) + last_bit1(b) > 95 && !scale(a) && !scale(b))
+        result.value_type = 1 + (sign_minus(a) != sign_minus(b));
+    return result;
+}
+
+s22_decimal s21s22_mul(s22_decimal a, s22_decimal b) {
+    s22_decimal result = errors_s21mul(a, b);
+    if (result.value_type || no_bits(a) || no_bits(b)) return result;
+    for (int i = 0; i <= last_bit1(b); i++) {
+        if (decbit(b, i)) result = plus(a, result);
+        shift(&a);
+    }
+    result.bits[3] = (a.bits[3] & 0x7FFFFFFF) + (b.bits[3] & 0x7FFFFFFF);
+    if (scale(result) > 28)
+        result.bits[0] = result.bits[1] = result.bits[2] = result.bits[3] = 0;
+    else if (sign_minus(a) != sign_minus(b))
+        result.bits[3] |= SIGNMASK;
+    return result;
+}
+
+int len_of_digit(s22_decimal dig) {
+    int res = 0;
+    for (int i = 95; i >= 0 && !res; i--)
+        if (decbit(dig, i)) res = i + 1;
+    return res;
+}
+
+
+
+s22_decimal add_only_scale(s22_decimal a, int scale) {
+    a.bits[3] = scale;
+    a.bits[3] <<= 16;
+    return a;
+}
+
+s22_decimal div_int(s22_decimal a, s22_decimal b, s22_decimal *buf) {
+    s22_decimal res = {{0, 0, 0, b.bits[3]}, 0};
+    int len_a = len_of_digit(a);
+    int i = len_a - 1;
+    while (i >= 0) {
+        if (decbit(a, i)) bit_on(buf, 0);
+        if (!s21s22_is_greater_or_equal(*buf, b)) {
+            *buf = s21s22_sub(*buf, b);
+            if (i != 0) shift(buf);
+            if (decbit(a, i - 1)) bit_on(buf, 0);
+            shift(&res);
+            bit_on(&res, 0);
+        } else {
+            shift(&res);
+            if (i != 0) shift(buf);
+            if ((i - 1) >= 0 && decbit(a, i - 1)) bit_on(buf, 0);
+        }
+        i--;
+    }
+    return res;
+}
+
+
+
+
+//int float_errors(float src, s22_decimal *dst) {
+//    if (!dst) return 1;
+//    for (int i = 0; i < 4; i++) dst->bits[i] = 0;
+//    if (src == PLUS_INFINITY)
+//        dst->value_type = 1;
+//    else if (src == MINUS_INFINITY)
+//        dst->value_type = 2;
+//    else if (src == NAN)
+//        dst->value_type = 3;
+//    return !!dst->value_type;
+//}
+//
+//char getbinexp(float src) {
+//    floatbits a = {.fl = src};
+//    char sca = (a.ui >> 23) - 127;
+//    return sca;
+//}
+
+//int s21s22_from_float_to_decimal(float src, s22_decimal *dst) {
+//    if (float_errors(src, dst)) return 1;
+//    int sign = 0;
+//    if (src < 0) sign = 1, src *= -1;
+//    int binaryexp = (int)getbinexp(src);
+//    if (binaryexp > 95) {
+//        return_infinity(dst);
+//    } else {
+//        unsigned int count = 0;
+//        for (; !((int)src); src *= 10, count++) {
+//        }
+//        for (; src / 1000000 < 1; src *= 10, count++) {
+//        }
+//        binaryexp = getbinexp(src);
+//        if (binaryexp < -94 || count > 28) {
+//            return_infinity(dst);
+//        } else {
+//            floatbits a = {.fl = src};
+//            bit_on(dst, binaryexp);
+//            unsigned int mask = 0x400000;
+//            for (int i = binaryexp - 1; i >= 0 && mask; i--, mask >>= 1)
+//                if (mask & a.ui) bit_on(dst, i);
+//            dst->bits[3] = count << 16;
+//            if (sign) dst->bits[3] |= SIGNMASK;
+//        }
+//    }
+//    return !!dst->value_type;
+//}
+
+
+s22_decimal minus_scale(s22_decimal a) {
+    s22_decimal buf = {{0, 0, 0, 0}, 0};
+    s22_decimal downscale = {{10, 0, 0, 0}, 0};
+    if (last_bit1(a) < 32 && a.bits[0] < 10) a.bits[0] = 0;
+    int sca = a.bits[3];
+    a = div_int(a, downscale, &buf);
+    a.bits[3] = sca - 0x10000;
+    return a;
+}
+
+s22_decimal plus(s22_decimal a, s22_decimal b) {
+    s22_decimal temp = {{0, 0, 0, a.bits[3]}, 0};
+    for (int i = 0, v_ume = 0; i < 96; i++) {
+        if (decbit(a, i) && decbit(b, i)) {
+            if (v_ume) bit_on(&temp, i);
+            v_ume = 1;
+        } else if (decbit(a, i) || decbit(b, i)) {
+            if (!v_ume) bit_on(&temp, i);
+        } else if (v_ume) {
+            bit_on(&temp, i);
+            v_ume = 0;
+        }
+        if (i == 95 && v_ume) return_infinity(&temp);
+        if (sign_minus(a) && temp.value_type == 1) temp.value_type = 2;
+    }
+    return temp;
+}
+
+s22_decimal s21s22_floor(s22_decimal a) {
+    while (scale(a) > 0) a = minus_scale(a);
+    if (sign_minus(a)) {
+        s22_decimal one = {{1, 0, 0, 0x80000000}, 0};
+        a = s21s22_add(a, one);
+    }
+    return a;
+}
+
+int detect_minus_result(s22_decimal *a, s22_decimal *b) {
+    int sign = 0;
+    if (sign_minus(*a)) {
+        a->bits[3] ^= 0x80000000;
+        b->bits[3] ^= 0x80000000;
+        sign = 1;
+    }
+    return sign;
+}
+
+s22_decimal s21s22_truncate(s22_decimal a) {
+    while (scale(a)) a = minus_scale(a);
+    return a;
+}
+
+s22_decimal not_a_number(void) {
+    s22_decimal a = {{0, 0, 0, 0}, 3};
+    return a;
+}
+
+s22_decimal s21s22_mod(s22_decimal a, s22_decimal b) {
+    if (no_bits(b)){
+        s22_decimal res = not_a_number();
+        return res;
+    }
+    s22_decimal mod = {{0, 0, 0, 0}, 0};
+    mod.value_type = a.value_type ?: b.value_type;
+    if (!mod.value_type && !no_bits(a)) {
+        char sca = scale(a);
+        char scb = scale(b);
+        int sign = detect_minus_result(&a, &b);
+        if (s21s22_is_greater_or_equal(a, b)) {
+            mod = a;
+        } else {
+            char scmax = 0;
+            if (!s21s22_is_equal(a, b)) sign = 0;
+            if (sca >= scb)
+                scmax = sca;
+            else
+                scmax = scb;
+            to_one_scale(&a, &b);
+            a.bits[3] = 0;
+            b.bits[3] = 0;
+            div_int(a, b, &mod);
+            mod = add_only_scale(mod, scmax);
+        }
+        if (sign) mod.bits[3] ^= 0x80000000;
+    }
+    return mod;
+}
+
+s22_decimal s21s22_round(s22_decimal a) {
+    int minus_sign = 0;
+    if (sign_minus(a)) {
+        minus_sign = 1;
+        a.bits[3] &= 0x7FFFFFFF;
+    }
+    char sca = scale(a);
+    s22_decimal divisor = {{1, 0, 0, 0}, 0};
+    s22_decimal ten = {{10, 0, 0, 0}, 0};
+    s22_decimal res = {{a.bits[0], a.bits[1], a.bits[2], 0}, 0};
+    s22_decimal buf = {{5, 0, 0, 0}, 0};
+    for (char i = 0; i < sca; i++) {
+        divisor = s21s22_mul(divisor, ten);
+        if (i) buf = s21s22_mul(buf, ten);
+    }
+    res = s21s22_mod(res, divisor);
+    if (is_greater_module(res, buf)) {
+        res = s21s22_truncate(a);
+        s22_decimal one = {{1, 0, 0, 0}, 0};
+        res = s21s22_add(res, one);
+    } else {
+        res = s21s22_truncate(a);
+    }
+    if (minus_sign) res.bits[3] |= SIGNMASK;
+    return res;
 }
