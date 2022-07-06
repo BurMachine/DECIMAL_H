@@ -7,159 +7,11 @@
 #include <stdbool.h>
 
 
-//int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
-//    int solution = 0;
-//    int scale = 0;
-//    int err = 0;
-//    // написать чек на допустимость значения (хз надо ли)
-//    // пока обрабатывает только целые числа(scale на подходе)
-//    if (!get_sign(&value_1) && !get_sign(&value_2)) {
-//        if (get_scale(&value_1) != get_scale(&value_2)) {
-//            scale = scale_equalize(&value_1, &value_2);
-//        } else {
-//            scale = get_scale(&value_1);
-//        }
-//
-//        *result = bit_add(&value_1, &value_2, &err);
-//        if (err == 1) {
-//            // infinity
-//            solution = 1;
-//        }
-//    } else if (get_sign(&value_1) && !get_sign(&value_2)) { // первое отрицательное, второе положительное
-//        s21_decimal tmp_1 = value_1;
-//        set_sign(&value_1, 0);
-//        set_scale(&tmp_1, get_scale(&value_1));
-//        if (get_scale(&tmp_1) != get_scale(&value_2)) {
-//            scale = scale_equalize(&tmp_1, &value_2);
-//        }
-//        s21_sub(value_2, value_1, result);
-//        if (s21_is_greater(value_1, value_2) && !s21_is_equal(value_1, value_2)) {
-//            set_bit(result, 127, 1);
-//        }
-//    } else if (!get_sign(&value_1) && get_sign(&value_2)) {
-//        s21_decimal tmp_1 = value_2;
-//        set_sign(&value_2, 0);
-//        set_scale(&tmp_1, get_scale(&value_2));
-//        if (get_scale(&tmp_1) != get_scale(&value_1)) {
-//            scale = scale_equalize(&tmp_1, &value_1);
-//        }
-//        s21_sub(value_1, value_2, result);
-//        if (!s21_is_greater(value_1, value_2)) {
-//            set_bit(result, 127, 1);
-//        }
-//    } else {
-//        // оба отрицательных
-//        set_sign(&value_1, 0);
-//        set_sign(&value_2, 0);
-//        if (get_scale(&value_1) != get_scale(&value_2)) {
-//            scale = scale_equalize(&value_1, &value_2);
-//        }
-//        int err = 0;
-//        *result = bit_add(&value_1, &value_2, &err);
-//        if (err == 1) {
-//            // negative_infinity
-//            solution = 2;
-//        }
-//        set_sign(result, 1);
-//    }
-//    set_scale(result, scale);
-////    scale_equalize(&value_1, &value_2);
-////    if (solution == 1) {
-////        s21_decimal zero = {{0, 0, 0, 0}};
-////        copy_bits(zero, result);
-////    }
-//    return solution;
-//}
 
-
-
-
-
-
-
-int eq_zero(s21_decimal value) {
-    return (value.bits[0] == 0 && value.bits[1] == 0 && value.bits[2] == 0);
-}
-int eq_zerol(s21_decimal value) {
-    return (value.bits[0] == 0 && value.bits[1] == 0 && value.bits[2] == 0 &&
-            value.bits[3] == 0);
-}
-
-int max(int a, int b) {
-    return a > b ? a : b;
-}
-int min(int a, int b) {
-    return a < b ? a : b;
-}
-s21_decimal binary_multiplication(s21_decimal value_1, s21_decimal value_2, int *err) {
-    *err = ARITHMETIC_OK;
-    s21_decimal result = {0};
-    while (!eq_zero(value_2) && !(*err)) {
-        if (!eq_zero(bit_and(value_2, get_power_of_ten(0)))) {
-            result = binary_addition(result, value_1, err);
-            if (*err)
-                break;
-        }
-
-        *err = shiftl(&value_1);
-        shiftr(&value_2);
-    }
-    return result;
-}
-
-void s21_normalize_decimal_pair(s21_decimal *a, s21_decimal *b, int *overflow) {
-    int e1 = get_exponent(*a), e2 = get_exponent(*b);
-    int cur_exp = min(e1, e2);
-    int target_exp = max(e1, e2);
-
-    s21_decimal cur = (e1 < e2) ? *a : *b;
-
-    while (cur_exp != target_exp && cur_exp < 28 && !(*overflow)) {
-        cur = binary_multiplication(cur, get_power_of_ten(1), overflow);
-        cur_exp++;
-        set_exponent(&cur, cur_exp);
-    }
-
-    if (!*overflow) {
-        if (e1 < e2)
-            *a = cur;
-        else
-            *b = cur;
-    } else {
-        s21_bank_rounding(&cur, target_exp - cur_exp);
-    }
-}
-
-int get_exponent(s21_decimal decimal) {
-    int exponent = 0;
-
-    for (int i = D_START_EXP, j = 0; i <= D_END_EXP; i++, j++) {
-        if (IS_SET(decimal.bits[3], i))
-            ADD_BIT(exponent, j);
-    }
-
-    return exponent;
-}
-
-void set_exponent(s21_decimal *decimal, int new_exponent) {
-    if (new_exponent <= 28) {
-        short sign = IS_SET(decimal->bits[3], D_SIGN);
-        decimal->bits[3] = 0;
-        if (sign)
-            set_sign(decimal, 1);
-        SET_BIT(decimal->bits[3], new_exponent, D_START_EXP);
-    }
-}
-
-
-void handle_exponent_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result, int *code) {
-    int exp = s21_normalize(&value_1, &value_2);
-    *result = binary_addition(value_1, value_2, code);
-    set_exponent(result, exp);
-}
 
 int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     memset(result, 0, sizeof(*result));
+    s21_decimal zero = {{0, 0, 0, 0}};
     int code = ARITHMETIC_OK;
     int s1 = get_sign(&value_1);
     int s2 = get_sign(&value_2);
@@ -188,57 +40,15 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
         if (code == 1)
             code = 2;
     }
+    if (code != 0) set_scale(result, 0);
+    if (s21_is_equal(*result, zero)){ set_sign(result, 0); result->bits[3] = 0;}
+    if (s21_is_equal(*result, zero)) {
+        set_scale(result, 0);
+        result->bits[3] = 0;
+    }
     return code;
 }
 
-//int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
-//    int a = 0;
-//    int result_sign;
-//    int flag = 0;
-//    if (get_sign(&value_1) != get_sign(&value_2)) { // разные знаки => ++ --
-//        result_sign = 0;
-//        if (get_sign(&value_1)) result_sign = 1;
-//        if (get_sign(&value_2)) result_sign = 0;
-//        set_sign(&value_1, 0);
-//        set_sign(&value_2, 0);
-//        a = s21_add(value_1, value_2, result);
-//        set_sign(result, result_sign);
-//        if (result_sign) {
-//            flag = 1;
-//        } else {
-//            flag = 2;
-//        }
-//    } else { // знаки одинаковые => +- or -+
-//        if (s21_is_equal(value_1, value_2)) {
-//            // нужно занулить result
-//        } else {
-//            int sign1 = get_sign(&value_1), sign2 = get_sign(&value_2);
-//            set_sign(&value_1, 0);
-//            set_sign(&value_2, 0);
-//            s21_decimal *small, *big;
-//
-//            if (s21_is_less(value_1, value_2)) {
-//                small = &value_1;
-//                big = &value_2;
-//                result_sign = !sign2;
-//            } else {
-//                small = &value_2;
-//                big = &value_1;
-//                result_sign = sign1;
-//            }
-//
-//            convert_to_addcode(small);
-//            a = s21_add(*small, *big, result);
-//            set_sign(result, result_sign);
-//        }
-//    }
-//    if (flag == 1 && a != 0) {
-//        a = 2;
-//    } else {
-//        a = 1;
-//    }
-//        return  a;
-//}
 
 int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     memset(result, 0, sizeof(*result));
@@ -268,6 +78,13 @@ int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
         } else {
             handle_exponent_sub(value_2, value_1, result, &code);
         }
+    }
+    s21_decimal zero_ = {{0, 0, 0, 2147483648}};
+    s21_decimal zero = {{0, 0, 0, 0}};
+    if (s21_is_equal(*result, zero_) || s21_is_equal(*result, zero) || code != 0) {
+        if (code != 0) copy_bits(zero, result);
+        set_scale(result, 0);
+        set_sign(result, 0);
     }
     return code;
 }
@@ -498,32 +315,23 @@ int bank_rounding(int n) {
 
 void s21_bank_rounding(s21_decimal *dec, int times) {
     int code = 0;
-
     int sign = get_sign(dec);
     int exp = get_exponent(*dec);
     set_sign(dec, 0);
-
     while (times > 0) {
         s21_decimal mod = {0}, ten = get_power_of_ten(1), hun = get_power_of_ten(2);
-
         s21_int_mod(*dec, hun, &mod);
-
         int mask = (127 & mod.bits[0]);
-
         s21_int_div(*dec, ten, dec);
-
         set_exponent(dec, exp - 1);
-
         if (bank_rounding(mask)) {
             s21_decimal one = {{1, 0, 0, 0}};
             s21_decimal copy = *dec;
             *dec = binary_addition(copy, one, &code);
             set_exponent(dec, exp - 1);
         }
-
         times--;
     }
-
     set_sign(dec, sign);
 }
 
@@ -614,27 +422,7 @@ s21_decimal s21_integer_mod_private(s21_decimal dividend, s21_decimal divisor) {
     return res;
 }
 
-int s21_div(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
-    memset(result, 0, sizeof(*result));
-    if (eq_zero(value_2))
-        return S21_NAN;
 
-    int code = ARITHMETIC_OK;
-
-    int s1 = get_sign(&value_1);
-    int s2 = get_sign(&value_2);
-
-    set_sign(&value_1, 0);
-    set_sign(&value_2, 0);
-
-
-    handle_exponent_div(value_1, value_2, result, &code);
-
-    if (s1 != s2)
-        set_sign(result, 1);
-
-    return code;
-}
 
 int s21_int_div(s21_decimal dividend, s21_decimal divisor, s21_decimal *result) {
     if (eq_zero(divisor))
@@ -771,6 +559,40 @@ bool s21_is_less_positive(s21_decimal a, s21_decimal b) {
 }
 //====================================
 
+//int s21_mul(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
+//    memset(result, 0, sizeof(*result));
+//    int code = ARITHMETIC_OK;
+//
+//    handle_exponent_mul(value_1, value_2, result, &code);
+//
+//    if (get_sign(&value_1) != get_sign(&value_2)) {
+//        set_sign(result, 1);
+//        if (code == 1)
+//            code = 2;
+//    }
+//    if (code == 1 || code == 2) {
+//        result->bits[0] = 0;
+//        result->bits[1] = 0;
+//        result->bits[2] = 0;
+//        result->bits[3] = 0;
+//    }
+//    return code;
+//}
+
+void handle_exponent_mul(s21_decimal value_1, s21_decimal value_2, s21_decimal *result, int *code) {
+    int exp_v1 = get_exponent(value_1);
+    int exp_v2 = get_exponent(value_2);
+    set_exponent(&value_1, 0);
+    set_exponent(&value_2, 0);
+    *result = binary_multiplication(value_1, value_2, code);
+    int i = 0;
+    for (; i < exp_v1 + exp_v2 && *code != 0; ++i) {
+        s21_int_div(i % 2 ? value_1 : value_2, get_power_of_ten(1), i % 2 ? &value_1 : &value_2);
+        *result = binary_multiplication(value_1, value_2, code);
+    }
+    set_exponent(result, exp_v1 + exp_v2 - i);
+}
+
 
 int s21_mul(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     int sign_result;
@@ -886,6 +708,29 @@ int s21_mul(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
 //    return res;
 //}
 
+int s21_div(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
+    memset(result, 0, sizeof(*result));
+    if (eq_zero(value_2))
+        return S21_NAN;
+
+    int code = ARITHMETIC_OK;
+
+    int s1 = get_sign(&value_1);
+    int s2 = get_sign(&value_2);
+
+    set_sign(&value_1, 0);
+    set_sign(&value_2, 0);
+
+
+    handle_exponent_div(value_1, value_2, result, &code);
+
+    if (s1 != s2)
+        set_sign(result, 1);
+
+    return code;
+}
+
+//
 //int s21_mod(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
 //    s21_decimal tmp;
 //    s21_decimal tmp1;
@@ -911,9 +756,9 @@ int s21_mul(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
 //    return res;
 //}
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                   СРАВНЕНИЯ                                                            //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  *
  * @param value_1
@@ -1134,6 +979,30 @@ int s21_truncate(s21_decimal value, s21_decimal *result) {
     return solution;
 }
 
+//int s21_truncate(s21_decimal value, s21_decimal *result) {
+//    memset(result, 0, sizeof(*result));
+//
+//    int sign = get_sign(&value);
+//    int exponent = get_exponent(value);
+//    set_sign(&value, 0);
+//
+//    /* set sign & exponent to 0 for future division */
+//    value.bits[3] = 0;
+//
+//    if (!exponent) {
+//        *result = value;
+//    } else {
+//        while (exponent--) {
+//            if (s21_div(value, get_power_of_ten(1), result))
+//                return CONVERTATION_ERROR;
+//            value = *result;
+//        }
+//    }
+//
+//    set_sign(result, sign);
+//
+//    return CONVERTATION_OK;
+//}
 
 //********************************************************************************************************//
 //********************************************************************************************************//
@@ -1144,6 +1013,88 @@ int s21_truncate(s21_decimal value, s21_decimal *result) {
 //********************************************************************************************************//
 //********************************************************************************************************//
 //********************************************************************************************************//
+
+int eq_zero(s21_decimal value) {
+    return (value.bits[0] == 0 && value.bits[1] == 0 && value.bits[2] == 0);
+}
+int eq_zerol(s21_decimal value) {
+    return (value.bits[0] == 0 && value.bits[1] == 0 && value.bits[2] == 0 &&
+            value.bits[3] == 0);
+}
+
+int max(int a, int b) {
+    return a > b ? a : b;
+}
+int min(int a, int b) {
+    return a < b ? a : b;
+}
+s21_decimal binary_multiplication(s21_decimal value_1, s21_decimal value_2, int *err) {
+    *err = ARITHMETIC_OK;
+    s21_decimal result = {0};
+    while (!eq_zero(value_2) && !(*err)) {
+        if (!eq_zero(bit_and(value_2, get_power_of_ten(0)))) {
+            result = binary_addition(result, value_1, err);
+            if (*err)
+                break;
+        }
+
+        *err = shiftl(&value_1);
+        shiftr(&value_2);
+    }
+    return result;
+}
+
+void s21_normalize_decimal_pair(s21_decimal *a, s21_decimal *b, int *overflow) {
+    int e1 = get_exponent(*a), e2 = get_exponent(*b);
+    int cur_exp = min(e1, e2);
+    int target_exp = max(e1, e2);
+
+    s21_decimal cur = (e1 < e2) ? *a : *b;
+
+    while (cur_exp != target_exp && cur_exp < 28 && !(*overflow)) {
+        cur = binary_multiplication(cur, get_power_of_ten(1), overflow);
+        cur_exp++;
+        set_exponent(&cur, cur_exp);
+    }
+
+    if (!*overflow) {
+        if (e1 < e2)
+            *a = cur;
+        else
+            *b = cur;
+    } else {
+        s21_bank_rounding(&cur, target_exp - cur_exp);
+    }
+}
+
+int get_exponent(s21_decimal decimal) {
+    int exponent = 0;
+
+    for (int i = D_START_EXP, j = 0; i <= D_END_EXP; i++, j++) {
+        if (IS_SET(decimal.bits[3], i))
+            ADD_BIT(exponent, j);
+    }
+
+    return exponent;
+}
+
+void set_exponent(s21_decimal *decimal, int new_exponent) {
+    if (new_exponent <= 28) {
+        short sign = IS_SET(decimal->bits[3], D_SIGN);
+        decimal->bits[3] = 0;
+        if (sign)
+            set_sign(decimal, 1);
+        SET_BIT(decimal->bits[3], new_exponent, D_START_EXP);
+    }
+}
+
+
+void handle_exponent_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result, int *code) {
+    int exp = s21_normalize(&value_1, &value_2);
+    *result = binary_addition(value_1, value_2, code);
+    set_exponent(result, exp);
+}
+
 
 s21_decimal bit_add(s21_decimal *a, s21_decimal *b, int *error_code) {
     s21_decimal result = {{0 ,0, 0, 0}};

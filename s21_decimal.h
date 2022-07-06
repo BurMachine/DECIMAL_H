@@ -181,6 +181,7 @@ int s21_floor(s21_decimal value, s21_decimal *result);
 
 
 void handle_exponent_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result, int *code);
+void handle_exponent_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result, int *code);
 int s21_normalize(s21_decimal *value_1, s21_decimal *value_2);
 s21_decimal binary_subtraction(s21_decimal value_1, s21_decimal value_2, int *err);
 s21_decimal binary_addition(s21_decimal value_1, s21_decimal value_2, int *err);
@@ -212,7 +213,9 @@ void handle_exponent_div(s21_decimal value_1, s21_decimal value_2, s21_decimal *
 int s21_int_div(s21_decimal dividend, s21_decimal divisor, s21_decimal *result);
 bool s21_is_less_positive(s21_decimal a, s21_decimal b);
 bool s21_is_less_basic(s21_decimal a, s21_decimal b);
-
+void handle_exponent_mul(s21_decimal value_1, s21_decimal value_2, s21_decimal *result, int *code);
+int min(int a, int b);
+int max(int a, int b);
 
 #endif // _S21_DECIMAL_H_
 //#endif // SRC_S21_DECIMAL_H_
