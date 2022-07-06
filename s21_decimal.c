@@ -958,7 +958,7 @@ int offset_left(s21_decimal *num_ptr, int value_offset) { // Смещение в
 int last_bit(s21_decimal number) {
     int last_bit = 95;
     for (; last_bit >= 0 && get_bit(number, last_bit) == 0; last_bit--){
-    };
+    }
     return  last_bit;
 }
 int zero_check(s21_decimal num1, s21_decimal num2) {
@@ -1037,6 +1037,35 @@ int scale_equalize(s21_decimal *number1, s21_decimal *number2) {
         }
     }
     return get_scale(number1);
+
+//    int a = 0;
+//    s22_decimal num = {{0, 0, 0, 0}, 0};
+//    s22_decimal num2 = {{0, 0, 0, 0}, 0};
+//    s22_decimal res = {{0, 0, 0, 0}, 0};
+//    num.bits[0] = number1->bits[0];
+//    num.bits[1] = number1->bits[1];
+//    num.bits[2] = number1->bits[2];
+//    num.bits[3] = number1->bits[3];
+//    num2.bits[0] = number2->bits[0];
+//    num2.bits[1] = number2->bits[1];
+//    num2.bits[2] = number2->bits[2];
+//    num2.bits[3] = number2->bits[3];
+//    to_one_scale(&num, &num2);
+//    number1->bits[0] = num.bits[0];
+//    number1->bits[1] = num.bits[1];
+//    number1->bits[2] = num.bits[2];
+//    number1->bits[3] = num.bits[3];
+//    number2->bits[0] = num2.bits[0];
+//    number2->bits[1] = num2.bits[1];
+//    number2->bits[2] = num2.bits[2];
+//    number2->bits[3] = num2.bits[3];
+//    if (res.value_type != 0) {
+//        if (res.value_type == 1) a = 1;
+//        if (res.value_type == 1) a = 2;
+//        if (res.value_type == 1) a = 3;
+//    }
+//    return a;
+
 }
 
 /** @brief Функция переводит число децимал в доп.код
