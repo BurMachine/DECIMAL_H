@@ -149,6 +149,37 @@ int is_less_b(s21_decimal num1, s21_decimal num2);
 s21_decimal division_without_scale(s21_decimal num1, s21_decimal num2);
 s21_decimal div_only_bits(s21_decimal number_1, s21_decimal number_2, s21_decimal *buf);
 s21_decimal get_power_of_ten(int pow);
+void handle_exponent_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result, int *code);
+void handle_exponent_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result, int *code);
+int s21_normalize(s21_decimal *value_1, s21_decimal *value_2);
+s21_decimal binary_subtraction(s21_decimal value_1, s21_decimal value_2, int *err);
+s21_decimal binary_addition(s21_decimal value_1, s21_decimal value_2, int *err);
+s21_decimal bit_and(s21_decimal a, s21_decimal b);
+s21_decimal bit_xor(s21_decimal a, s21_decimal b);
+s21_decimal bit_lxor(s21_decimal a, s21_decimal b);
+s21_decimal bit_land(s21_decimal a, s21_decimal b);
+s21_decimal bit_not(s21_decimal a);
+void shiftr(s21_decimal *a);
+int lshiftl(s21_decimal *a);
+int shiftl(s21_decimal *a);
+void set_exponent(s21_decimal *decimal, int new_exponent);
+int get_exponent(s21_decimal decimal);
+void s21_normalize_decimal_pair(s21_decimal *a, s21_decimal *b, int *overflow);
+s21_decimal binary_multiplication(s21_decimal value_1, s21_decimal value_2, int *err);
+int eq_zero(s21_decimal value);
+int eq_zerol(s21_decimal value);
+void s21_bank_rounding(s21_decimal *dec, int times);
+int bank_rounding(int n);
+int s21_int_mod(s21_decimal dividend, s21_decimal divisor, s21_decimal *result);
+s21_decimal s21_integer_mod_private(s21_decimal dividend, s21_decimal divisor);
+s21_decimal s21_integer_div_private(s21_decimal dividend, s21_decimal divisor, s21_decimal *result);
+void handle_exponent_div(s21_decimal value_1, s21_decimal value_2, s21_decimal *result, int *code);
+int s21_int_div(s21_decimal dividend, s21_decimal divisor, s21_decimal *result);
+bool s21_is_less_positive(s21_decimal a, s21_decimal b);
+bool s21_is_less_basic(s21_decimal a, s21_decimal b);
+void handle_exponent_mul(s21_decimal value_1, s21_decimal value_2, s21_decimal *result, int *code);
+int min(int a, int b);
+int max(int a, int b);
 
 
 int s21_from_int_to_decimal(int src, s21_decimal *dst);
@@ -180,42 +211,7 @@ int s21_round(s21_decimal value, s21_decimal *result);
 
 
 
-void handle_exponent_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result, int *code);
-void handle_exponent_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result, int *code);
-int s21_normalize(s21_decimal *value_1, s21_decimal *value_2);
-s21_decimal binary_subtraction(s21_decimal value_1, s21_decimal value_2, int *err);
-s21_decimal binary_addition(s21_decimal value_1, s21_decimal value_2, int *err);
-s21_decimal bit_and(s21_decimal a, s21_decimal b);
-s21_decimal bit_xor(s21_decimal a, s21_decimal b);
-s21_decimal bit_lxor(s21_decimal a, s21_decimal b);
-s21_decimal bit_land(s21_decimal a, s21_decimal b);
-s21_decimal bit_not(s21_decimal a);
-void shiftr(s21_decimal *a);
-int lshiftl(s21_decimal *a);
-int shiftl(s21_decimal *a);
 
-void set_exponent(s21_decimal *decimal, int new_exponent);
-int get_exponent(s21_decimal decimal);
-
-void s21_normalize_decimal_pair(s21_decimal *a, s21_decimal *b, int *overflow);
-s21_decimal binary_multiplication(s21_decimal value_1, s21_decimal value_2, int *err);
-
-int eq_zero(s21_decimal value);
-int eq_zerol(s21_decimal value);
-
-void s21_bank_rounding(s21_decimal *dec, int times);
-int bank_rounding(int n);
-
-int s21_int_mod(s21_decimal dividend, s21_decimal divisor, s21_decimal *result);
-s21_decimal s21_integer_mod_private(s21_decimal dividend, s21_decimal divisor);
-s21_decimal s21_integer_div_private(s21_decimal dividend, s21_decimal divisor, s21_decimal *result);
-void handle_exponent_div(s21_decimal value_1, s21_decimal value_2, s21_decimal *result, int *code);
-int s21_int_div(s21_decimal dividend, s21_decimal divisor, s21_decimal *result);
-bool s21_is_less_positive(s21_decimal a, s21_decimal b);
-bool s21_is_less_basic(s21_decimal a, s21_decimal b);
-void handle_exponent_mul(s21_decimal value_1, s21_decimal value_2, s21_decimal *result, int *code);
-int min(int a, int b);
-int max(int a, int b);
 
 #endif // _S21_DECIMAL_H_
 //#endif // SRC_S21_DECIMAL_H_
