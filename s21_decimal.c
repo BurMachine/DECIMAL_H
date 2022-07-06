@@ -1597,3 +1597,27 @@ int s21_floor(s21_decimal value, s21_decimal *result) {
     set_sign(result, sign);
     return s21_ok;
 }
+int s21_round(s21_decimal value, s21_decimal *result) {
+    memset(result, 0, sizeof(*result));
+    int never_error = 0;
+    int sign = get_sign(&value);
+    s21_decimal one = get_power_of_ten(0);
+    s21_decimal zeroDotFive = {0};
+    zeroDotFive.bits[0] = 5;
+    s21_decimal mod_res = {0};
+    set_exponent(&zeroDotFive, 1);
+
+    s21_mod(value, one, &mod_res);
+    set_sign(&mod_res, POS);
+
+    s21_truncate(value, result);
+
+    s21_normalize(&mod_res, &zeroDotFive);
+
+    if (s21_is_greater(mod_res, zeroDotFive) ||
+        s21_is_equal(mod_res, zeroDotFive)) {
+        *result = binary_addition(*result, one, &never_error);
+    }
+    set_sign(result, sign);
+    return s21_ok;
+}
