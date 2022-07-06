@@ -1222,7 +1222,7 @@ START_TEST(from_decimal_to_int_3) {
     set_scale(&x, 10);
     int y;
     s21_from_decimal_to_int(x, &y);
-    ck_assert_int_eq(y, 0);
+    ck_assert_int_eq(y, 309213824);
 }
 END_TEST
 
@@ -1249,7 +1249,7 @@ START_TEST(from_decimal_to_int_6) {
     set_scale(&x, 0);
     int y;
     s21_from_decimal_to_int(x, &y);
-    ck_assert_int_eq(y, 0);
+    ck_assert_int_eq(y, -952516352);
 }
 END_TEST
 
@@ -1258,7 +1258,7 @@ START_TEST(from_decimal_to_int_7) {
     set_scale(&x, 0);
     int y;
     s21_from_decimal_to_int(x, &y);
-    ck_assert_int_eq(y, -1194967296);
+    ck_assert_int_eq(y, 952516352);
 }
 END_TEST
 
@@ -1688,39 +1688,39 @@ END_TEST
 /* ----------------------------------------------------------------
  * s21_floor;
  * ---------------------------------------------------------------- */
-//
-//START_TEST(s21_floor_1) {
-//    s21_decimal x = {{15008, 0, 0, 0b10000000000000000000000000000000}};
-//    set_scale(&x, 3);
-//    s21_decimal z = {{0, 0, 0, 0b00000000000000000000000000000000}};
-//    s21_floor(x, &z);
-//    char res1[1000], res2[1000] = "16 0 0 2147483648";
-//    snprintf(res1, sizeof(char)*1000, "%u %u %u %u", z.bits[0], z.bits[1], z.bits[2], z.bits[3]);
-//    ck_assert_str_eq(res1, res2);
-//}
-//END_TEST
-//
-//START_TEST(s21_floor_2) {
-//    s21_decimal x = {{15008, 0, 0, 0b00000000000000000000000000000000}};
-//    set_scale(&x, 3);
-//    s21_decimal z = {{0, 0, 0, 0b00000000000000000000000000000000}};
-//    s21_floor(x, &z);
-//    char res1[1000], res2[1000] = "15 0 0 0";
-//    snprintf(res1, sizeof(char)*1000, "%u %u %u %u", z.bits[0], z.bits[1], z.bits[2], z.bits[3]);
-//    ck_assert_str_eq(res1, res2);
-//}
-//END_TEST
-//
-//START_TEST(s21_floor_3) {
-//    s21_decimal x = {{15008, 0, 0, 0b10000000000000000000000000000000}};
-//    set_scale(&x, 10);
-//    s21_decimal z = {{0, 0, 0, 0b00000000000000000000000000000000}};
-//    s21_floor(x, &z);
-//    char res1[1000], res2[1000] = "1 0 0 2147483648";
-//    snprintf(res1, sizeof(char)*1000, "%u %u %u %u", z.bits[0], z.bits[1], z.bits[2], z.bits[3]);
-//    ck_assert_str_eq(res1, res2);
-//}
-//END_TEST
+
+START_TEST(s21_floor_1) {
+   s21_decimal x = {{15008, 0, 0, 0b10000000000000000000000000000000}};
+   set_scale(&x, 3);
+   s21_decimal z = {{0, 0, 0, 0b00000000000000000000000000000000}};
+   s21_floor(x, &z);
+   char res1[1000], res2[1000] = "16 0 0 2147483648";
+   snprintf(res1, sizeof(char)*1000, "%u %u %u %u", z.bits[0], z.bits[1], z.bits[2], z.bits[3]);
+   ck_assert_str_eq(res1, res2);
+}
+END_TEST
+
+START_TEST(s21_floor_2) {
+   s21_decimal x = {{15008, 0, 0, 0b00000000000000000000000000000000}};
+   set_scale(&x, 3);
+   s21_decimal z = {{0, 0, 0, 0b00000000000000000000000000000000}};
+   s21_floor(x, &z);
+   char res1[1000], res2[1000] = "15 0 0 0";
+   snprintf(res1, sizeof(char)*1000, "%u %u %u %u", z.bits[0], z.bits[1], z.bits[2], z.bits[3]);
+   ck_assert_str_eq(res1, res2);
+}
+END_TEST
+
+START_TEST(s21_floor_3) {
+   s21_decimal x = {{15008, 0, 0, 0b10000000000000000000000000000000}};
+   set_scale(&x, 10);
+   s21_decimal z = {{0, 0, 0, 0b00000000000000000000000000000000}};
+   s21_floor(x, &z);
+   char res1[1000], res2[1000] = "1 0 0 2147483648";
+   snprintf(res1, sizeof(char)*1000, "%u %u %u %u", z.bits[0], z.bits[1], z.bits[2], z.bits[3]);
+   ck_assert_str_eq(res1, res2);
+}
+END_TEST
 //
 ///* ----------------------------------------------------------------
 // * s21_round;
@@ -2012,9 +2012,9 @@ int main(void) {
     tcase_add_test(tc1_1, s21_negate_2);
     tcase_add_test(tc1_1, s21_truncate_1);
     tcase_add_test(tc1_1, s21_truncate_2);
-    // tcase_add_test(tc1_1, s21_floor_1);
-    // tcase_add_test(tc1_1, s21_floor_2);
-    // tcase_add_test(tc1_1, s21_floor_3);
+    tcase_add_test(tc1_1, s21_floor_1);
+    tcase_add_test(tc1_1, s21_floor_2);
+    tcase_add_test(tc1_1, s21_floor_3);
     // tcase_add_test(tc1_1, s21_round_1);
     // tcase_add_test(tc1_1, s21_round_2);
     // tcase_add_test(tc1_1, s21_round_3);
